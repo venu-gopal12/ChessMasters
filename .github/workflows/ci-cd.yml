@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install backend dependencies
+      working-directory: ./Backend
+      run: npm ci
+      
+    - name: Run backend tests
+      working-directory: ./Backend
+      run: npm test
+      
+    - name: Log test completion
+      run: |
+        echo "All tests completed"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"
+        
+    - name: Log files changed
+      run: |
+        echo "Files changed in this commit:"
+        git diff-tree --no-commit-id --name-only -r ${{ github.sha }}
+        
+    - name: Deployment
+      run: |
+        echo "Starting deployment process..."
+        # Add your actual deployment commands here
+        echo "Deployment complete!"
