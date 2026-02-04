@@ -102,8 +102,10 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'https://chess-masters.vercel.app',
+  'https://chess-masters-gray.vercel.app', // Your actual Vercel deployment
   'http://localhost:80',
-  'http://localhost'
+  'http://localhost',
+  frontendUrl // From environment variable
 ];
 
 
