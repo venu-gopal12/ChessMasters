@@ -12,8 +12,8 @@ axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 403) {
-      // Redirect to login page on authentication failure
-      window.location.href = '/login';
+      // Redirect to home page (login form) on authentication failure
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }

@@ -19,9 +19,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_MIHIR_BACKEND: /api
+        VITE_BACKEND: /api
     environment:
-      - VITE_MIHIR_BACKEND=/api
+      - VITE_BACKEND=/api
     ports:
       - '80:80'
     volumes:

@@ -14,8 +14,8 @@ RUN npm install
 COPY . .
 
 # Pass build-time environment variable
-ARG VITE_MIHIR_BACKEND
-ENV VITE_MIHIR_BACKEND=$VITE_MIHIR_BACKEND
+ARG VITE_BACKEND
+ENV VITE_BACKEND=$VITE_BACKEND
 
 # Build the application
 RUN npm run build

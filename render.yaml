@@ -1,0 +1,22 @@
+version: 1
+services:
+  - type: web
+    name: chessmasters-backend
+    runtime: node
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: cd Backend && npm install
+    startCommand: cd Backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: VITE_BACKEND
+        sync: false
+    healthCheckPath: /

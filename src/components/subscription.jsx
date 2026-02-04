@@ -14,8 +14,8 @@ axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 403) {
-      // Redirect to login page on authentication failure
-      window.location.href = '/login';
+      // Redirect to home page (login form) on authentication failure
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
@@ -74,7 +74,7 @@ const SubscriptionChart = () => {
     
         if (!coachId) {
           setError('Authentication required. Please login again.');
-          navigate('/login');
+          navigate('/');
           return;
         }
     
@@ -103,7 +103,7 @@ const SubscriptionChart = () => {
         console.error('Error fetching subscription data:', error);
         if (error.response?.status === 401 || error.response?.status === 403) {
           setError('Session expired or unauthorized. Please login again.');
-          navigate('/login');
+          navigate('/');
         } else {
           setError(error.response?.data?.message || 'Failed to fetch subscription data');
         }

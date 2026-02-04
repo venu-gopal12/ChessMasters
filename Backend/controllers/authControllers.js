@@ -23,8 +23,6 @@ export const registerUser = async (req, res) => {
       console.log("User does not exist");
     }
 
-    const hashedPassword = await bcrypt.hash(Password, 10);
-
     const user = new UserModel({
       UserName,
       Email,

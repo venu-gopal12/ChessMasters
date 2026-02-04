@@ -80,6 +80,7 @@ function App() {
 
     const router = createBrowserRouter([
         { path: '/', element: <Greeting onLoginSuccess={handleLogin} /> },
+        { path: '/login', element: <Navigate to="/" replace /> },
         { path: '/AdminDashboard', element: <Dashboard /> },
         { path: '/coach/:coachId/CoachDashboard', element: <CoachDashboard /> },
         { path: '/PlayerDashboard', element: <Profile /> },
