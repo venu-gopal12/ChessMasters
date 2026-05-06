@@ -6,7 +6,7 @@
 
 ## 🌐 Live Deployment
 
-- **Frontend:** [https://chess-masters.vercel.app/](https://chess-masters.vercel.app/)
+- **Frontend:** [https://chess-masters-gray.vercel.app/](https://chess-masters-gray.vercel.app/)
 - **Backend API Documentation (Swagger/OpenAPI):** [https://chessmasters.onrender.com/api-docs/](https://chessmasters.onrender.com/api-docs/)
 
 > The frontend is deployed on **Vercel** and the backend is hosted on **Render**.
