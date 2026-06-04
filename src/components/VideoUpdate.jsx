@@ -200,7 +200,7 @@ const VideoUpdate = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"
             />
             <p className="mt-1 text-sm text-gray-500">
-              Current file: {video.filePath.split('/').pop()}
+              Current file: {video.filePath.split(/[\/\\]/).pop()}
             </p>
             <p className="mt-1 text-xs text-gray-500">
               Only MP4, AVI, or MOV files up to 100MB are accepted

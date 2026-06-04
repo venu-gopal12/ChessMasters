@@ -9,9 +9,14 @@ import axios from 'axios';
 import morgan from 'morgan'
 import swaggerJsDoc from 'swagger-jsdoc'; // Add this import
 import swaggerUI from 'swagger-ui-express'; // Add this import
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { startSubscriptionCleanupJob } from './jobs/subscriptionJobs.js';
 import ErrorHandler, { errorMiddleware } from './middlewares/errorHandler.js';
 import { port, frontendUrl, mongodbUri, mihirBackend } from './config.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // import { mihirBackend }  from "../config.js";
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
@@ -93,6 +98,7 @@ app.get('/api-docs', (req, res) => {
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 //------------------------------------------------------

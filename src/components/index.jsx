@@ -109,6 +109,7 @@ function HomePage() {
       .get(`${mihirBackend}/auth/details`, { withCredentials: true })
       .then((resp) => {
         setDetails(resp.data);
+        setIsPlayer(resp.data.Role === "player");
   
         if (resp.data.Role === "player" || resp.data.Role === "coach"){
           axios

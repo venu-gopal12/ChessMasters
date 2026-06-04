@@ -40,7 +40,7 @@ const VideoDetail = () => {
   );
 
   let path = video.filePath;
-  let newPath = "../../Backend/" + path;
+  let newPath = `${mihirBackend}/${path.replace(/\\/g, '/')}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 py-6 sm:py-8 md:py-12 px-3 sm:px-6 lg:px-8">
