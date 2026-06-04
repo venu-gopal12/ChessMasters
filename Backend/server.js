@@ -719,10 +719,14 @@ io.on('connection', (socket) => {
                 userId: disconnectedPlayer.userId,
                 result: 'loss'
               }).catch(console.error);
+            } else {
+              // If there's no remaining player, the room was waiting for an opponent
+              // Remove the disconnected player so the room becomes empty
+              gameRoom.players.splice(disconnectedPlayerIndex, 1);
             }
 
             // Remove the room if it's now empty or the game is over
-            if (gameRoom.players.length <= 1 || gameRoom.isGameOver) {
+            if (gameRoom.players.length === 0 || gameRoom.isGameOver) {
               // Keep the room for a short time to allow for potential reconnection
               setTimeout(() => {
                 if (games[roomId] && (games[roomId].players.length === 0 || games[roomId].isGameOver)) {
