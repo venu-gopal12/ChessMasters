@@ -8,7 +8,32 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { mihirBackend } from "../../config.js";
 
-const FIXED_BOARD_WIDTH = 715; // Set to a comfortable size for most screens
+const MAX_BOARD_WIDTH = 715;
+const MIN_BOARD_WIDTH = 280;
+
+const getFullscreenElement = () => (
+  document.fullscreenElement ||
+  document.webkitFullscreenElement ||
+  document.mozFullScreenElement ||
+  document.msFullscreenElement
+);
+
+const exitFullscreen = () => {
+  if (document.exitFullscreen) return document.exitFullscreen();
+  if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+  if (document.mozCancelFullScreen) return document.mozCancelFullScreen();
+  if (document.msExitFullscreen) return document.msExitFullscreen();
+  return Promise.resolve();
+};
+
+const requestFullscreen = (element) => {
+  if (!element) return Promise.resolve();
+  if (element.requestFullscreen) return element.requestFullscreen();
+  if (element.webkitRequestFullscreen) return element.webkitRequestFullscreen();
+  if (element.mozRequestFullScreen) return element.mozRequestFullScreen();
+  if (element.msRequestFullscreen) return element.msRequestFullscreen();
+  return Promise.resolve();
+};
 
 function ChessBoard() {
   const navigate = useNavigate();
@@ -36,29 +61,57 @@ function ChessBoard() {
   const [eloChange, setEloChange] = useState(0);
   const [showEloAnimation, setShowEloAnimation] = useState(false);
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false);
-  const [showEscWarning, setShowEscWarning] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const socket = useRef(null);
   const containerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
-  const [isHandlingFullscreenExit, setIsHandlingFullscreenExit] = useState(false);
 
   // Resize board logic
   useEffect(() => {
     const updateBoardWidth = () => {
-      if (isHandlingFullscreenExit) return;
-      
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const newWidth = Math.min(650, containerWidth - 32);
-        setBoardWidth(newWidth);
-      }
+      const isDesktopLayout = window.innerWidth >= 1024;
+      const pagePadding = isDesktopLayout ? 48 : 24;
+      const layoutGap = isDesktopLayout ? 32 : 24;
+      const sidePanelWidth = isDesktopLayout ? Math.min(384, Math.max(320, window.innerWidth * 0.25)) : 0;
+      const playerBarsHeight = 112;
+      const boardRoomByWidth = window.innerWidth - pagePadding - sidePanelWidth - layoutGap;
+      const boardRoomByHeight = window.innerHeight - pagePadding - playerBarsHeight;
+      const nextWidth = Math.max(
+        MIN_BOARD_WIDTH,
+        Math.min(MAX_BOARD_WIDTH, boardRoomByWidth, boardRoomByHeight)
+      );
+
+      setBoardWidth(Math.floor(nextWidth));
     };
 
     window.addEventListener("resize", updateBoardWidth);
+    document.addEventListener("fullscreenchange", updateBoardWidth);
     updateBoardWidth();
 
-    return () => window.removeEventListener("resize", updateBoardWidth);
-  }, [isHandlingFullscreenExit]);
+    return () => {
+      window.removeEventListener("resize", updateBoardWidth);
+      document.removeEventListener("fullscreenchange", updateBoardWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(getFullscreenElement()));
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+    handleFullscreenChange();
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
+  }, []);
 
   // Safe game mutation function
   function safeGameMutate(modify) {
@@ -77,7 +130,7 @@ function ChessBoard() {
     }
 
     socket.current = io(`${mihirBackend}`, {
-      // transports: ['websocket'], 
+      transports: ['websocket'],
       withCredentials: true,
       query: { userId }, // Send userId through query using Redux
       // upgrade: false,
@@ -634,111 +687,12 @@ function ChessBoard() {
     };
   }, [isConnected, gameOver, color, room, game, players]);
 
-  // Modify the fullscreen change handler
-  useEffect(() => {
-    if (isConnected && !gameOver && fullscreenContainerRef.current) {
-      try {
-        // Request fullscreen when the game starts
-        if (fullscreenContainerRef.current.requestFullscreen) {
-          fullscreenContainerRef.current.requestFullscreen();
-        } else if (fullscreenContainerRef.current.mozRequestFullScreen) {
-          fullscreenContainerRef.current.mozRequestFullScreen();
-        } else if (fullscreenContainerRef.current.webkitRequestFullscreen) {
-          fullscreenContainerRef.current.webkitRequestFullscreen();
-        } else if (fullscreenContainerRef.current.msRequestFullscreen) {
-          fullscreenContainerRef.current.msRequestFullscreen();
-        }
-        
-        // Handle fullscreen exit
-        const handleFullscreenChange = () => {
-          if (!document.fullscreenElement && 
-              !document.webkitFullscreenElement && 
-              !document.mozFullScreenElement && 
-              !document.msFullscreenElement) {
-            
-            // If game is still in progress and user exits fullscreen
-            if (isConnected && !gameOver) {
-              // Set flag to prevent resizing during this process
-              setIsHandlingFullscreenExit(true);
-              
-              // Show ESC warning
-              setShowEscWarning(true);
-              
-              // Try to go back to fullscreen after a short delay
-              setTimeout(() => {
-                if (!gameOver && !document.fullscreenElement && fullscreenContainerRef.current) {
-                  try {
-                    fullscreenContainerRef.current.requestFullscreen();
-                  } catch (error) {
-                    console.error("Could not re-enter fullscreen:", error);
-                  } finally {
-                    // Reset the handling flag after attempting to re-enter fullscreen
-                    setTimeout(() => {
-                      setIsHandlingFullscreenExit(false);
-                    }, 100);
-                  }
-                } else {
-                  setIsHandlingFullscreenExit(false);
-                }
-              }, 10);
-            }
-          }
-        };
-        
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-        
-        return () => {
-          document.removeEventListener('fullscreenchange', handleFullscreenChange);
-          document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-          document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-          document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-        };
-      } catch (error) {
-        console.error("Error requesting fullscreen:", error);
-      }
-    }
-  }, [isConnected, gameOver]);
-
   // Add a function to exit fullscreen when game is over
   useEffect(() => {
-    if (gameOver && document.fullscreenElement) {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-        document.webkitExitFullscreen();
-      } else if (document.mozCancelFullScreen) { // Firefox
-        document.mozCancelFullScreen();
-      } else if (document.msExitFullscreen) { // IE/Edge
-        document.msExitFullscreen();
-      }
+    if (gameOver && getFullscreenElement()) {
+      exitFullscreen().catch((error) => console.error("Could not exit fullscreen:", error));
     }
   }, [gameOver]);
-
-  // Add a keyboard event listener for ESC key
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      // Check if ESC key was pressed during a game
-      if (e.key === 'Escape' && isConnected && !gameOver) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Show ESC warning dialog
-        setShowEscWarning(true);
-        
-        return false;
-      }
-    };
-    
-    // Add the event listener
-    window.addEventListener('keydown', handleEscKey, { capture: true });
-    
-    return () => {
-      window.removeEventListener('keydown', handleEscKey, { capture: true });
-    };
-  }, [isConnected, gameOver]);
 
   // Loading state
   if (!color || (!isConnected && !gameOver)) {
@@ -755,11 +709,12 @@ function ChessBoard() {
   }
 
   return (
-    <div ref={fullscreenContainerRef} className="flex flex-col lg:flex-row items-start justify-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 p-3 sm:p-6 gap-6 lg:gap-8">
+    <div ref={fullscreenContainerRef} className="flex flex-col lg:flex-row items-start justify-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 p-3 sm:p-6 gap-6 lg:gap-8 overflow-auto">
       <div className="w-full lg:w-auto flex flex-col items-center">
         <div 
           ref={containerRef}
           className="w-full lg:w-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ maxWidth: `${boardWidth}px` }}
         >
           <div className="flex justify-between items-center px-4 py-3 bg-indigo-600 text-white">
             <div className="text-base sm:text-lg font-medium">
@@ -777,7 +732,7 @@ function ChessBoard() {
               onSquareClick={onSquareClick}
               customSquareStyles={customSquareStyles}
               boardOrientation={color === "b" ? "black" : "white"}
-              boardWidth={FIXED_BOARD_WIDTH}
+              boardWidth={boardWidth}
             />
             {gameOver && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm text-white z-50">
@@ -1003,75 +958,27 @@ function ChessBoard() {
         </div>
       )}
 
-      {/* ESC key warning modal */}
-      {showEscWarning && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
-          <div className="bg-gradient-to-br from-white to-red-50 rounded-xl p-6 max-w-xs w-full shadow-2xl border border-red-100 animate-fade-in">
-            <div className="flex items-center mb-4 text-red-500">
-              <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <h3 className="text-xl font-bold text-gray-800">Fullscreen Warning</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Exiting fullscreen mode will count as resignation and you will lose the game. 
-              Do you want to continue playing or resign?
-            </p>
-            <div className="flex justify-between space-x-3">
-              <button 
-                onClick={() => {
-                  setShowEscWarning(false);
-                  // Try to re-enter fullscreen when user clicks Continue
-                  if (fullscreenContainerRef.current) {
-                    try {
-                      // Using a small delay to ensure the dialog is fully closed before requesting fullscreen
-                      setTimeout(() => {
-                        fullscreenContainerRef.current.requestFullscreen()
-                          .catch(error => console.error("Could not re-enter fullscreen:", error))
-                          .finally(() => {
-                            // Reset the handling flag after attempting to re-enter fullscreen
-                            setIsHandlingFullscreenExit(false);
-                          });
-                      }, 50);
-                    } catch (error) {
-                      console.error("Could not re-enter fullscreen:", error);
-                      setIsHandlingFullscreenExit(false);
-                    }
-                  } else {
-                    setIsHandlingFullscreenExit(false);
-                  }
-                }}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-white transition-colors shadow-sm hover:shadow flex-1"
-              >
-                Continue Playing
-              </button>
-              <button 
-                onClick={() => {
-                  setShowEscWarning(false);
-                  handleResign();
-                }}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white transition-colors shadow-sm hover:shadow flex-1"
-              >
-                Resign
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Add a fullscreen button for additional control */}
       <button 
         onClick={() => {
-          if (!document.fullscreenElement) {
-            fullscreenContainerRef.current.requestFullscreen();
-          }
+          const action = getFullscreenElement()
+            ? exitFullscreen()
+            : requestFullscreen(fullscreenContainerRef.current);
+
+          action.catch((error) => console.error("Could not toggle fullscreen:", error));
         }}
         className="fixed bottom-4 right-4 bg-indigo-600 text-white p-2 rounded-full shadow-lg z-10 hover:bg-indigo-700 transition-colors"
-        title="Enter fullscreen mode"
+        title={isFullscreen ? "Exit fullscreen mode" : "Enter fullscreen mode"}
       >
-        <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-        </svg>
+        {isFullscreen ? (
+          <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9H5V5m0 0 5 5m5-5h4v4m0-4-5 5M9 15H5v4m0 0 5-5m5 5h4v-4m0 4-5-5" />
+          </svg>
+        ) : (
+          <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+          </svg>
+        )}
       </button>
     </div>
   );

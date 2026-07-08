@@ -8,13 +8,17 @@ const ViewSchema = new Schema({
 });
 
 const VideoSchema = new Schema({
-  coach: { type: Schema.Types.ObjectId, ref: "CoachDetails", required: true },
+  coach: { type: Schema.Types.ObjectId, ref: "UserModel", required: true },
   title: { type: String, required: true },
   content: { type: String, required: true }, 
   filePath: { type: String, required: true }, 
+  cloudinaryPublicId: { type: String, default: "" },
+  cloudinaryResourceType: { type: String, default: "video" },
   thumbnailPath: { type: String, default: "" }, 
   createdAt: { type: Date, default: Date.now },
   views: [ViewSchema]
 });
+
+VideoSchema.index({ coach: 1, createdAt: -1 });
 
 export default model("Video", VideoSchema);

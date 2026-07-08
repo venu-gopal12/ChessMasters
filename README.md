@@ -1,155 +1,258 @@
 # ChessMasters
 
-**ChessMasters** is a robust and feature-rich online platform designed for chess enthusiasts across all skill levels. Whether you're a beginner exploring the fundamentals or an advanced player sharpening your tactics, ChessMasters provides a dynamic environment to play, learn, and grow. The platform supports real-time gameplay, coach-led mentoring, and a wealth of educational content curated by seasoned professionals.
+ChessMasters is a full-stack chess platform for real-time games, player and coach profiles, subscriptions, educational articles and videos, game history, and administrative reporting.
 
----
+## Live application
 
-## 🌐 Live Deployment
+- Frontend: [chess-masters-gray.vercel.app](https://chess-masters-gray.vercel.app/)
+- Backend API documentation: [chessmasters.onrender.com/api-docs](https://chessmasters.onrender.com/api-docs/)
 
-- **Frontend:** [https://chess-masters-gray.vercel.app/](https://chess-masters-gray.vercel.app/)
-- **Backend API Documentation (Swagger/OpenAPI):** [https://chessmasters.onrender.com/api-docs/](https://chessmasters.onrender.com/api-docs/)
+The frontend is deployed on Vercel and the backend is deployed on Render.
 
-> The frontend is deployed on **Vercel** and the backend is hosted on **Render**.
+## Features
 
----
+- Real-time multiplayer chess powered by Socket.IO and Chess.js
+- Server-authoritative move validation, game results, ELO updates, and reconnection handling
+- Player and coach registration, authentication, profiles, and role-based access
+- Coach discovery and 30-day content subscriptions
+- Coach-created articles and videos with view analytics
+- Player game history and statistics
+- Coach subscription, revenue, and content dashboards
+- Protected admin dashboard for users, content, games, statistics, and revenue
+- Responsive React interface with route-level code splitting
 
-## 🚀 Features
+> Billing currently runs in clearly labelled demo mode. The application does not collect card data or make real charges. Integrate a PCI-compliant payment provider before enabling production payments.
 
-- **♟️ Play Chess:** Experience seamless real-time chess gameplay with players around the world.
-- **👨‍🏫 Coaching Services:** Connect with expert coaches for personalized feedback and strategic guidance.
-- **📚 Educational Resources:** Access premium articles and video content crafted by professional coaches.
-- **🧭 User-Friendly Interface:** Enjoy a modern, responsive UI for intuitive navigation and interaction.
-
----
-
-## 🛠️ Technologies Used
-
-ChessMasters is built using a modern and scalable tech stack:
+## Technology
 
 ### Frontend
 
-- **React** – Component-based UI development  
-- **react-chessboard** – Interactive chessboard with drag-and-drop support  
-- **React Router** – Client-side routing  
-- **Axios** – API request handling  
+- React 18 and Vite
+- React Router
+- Redux Toolkit
+- Axios
+- Socket.IO Client
+- Chess.js and React Chessboard
+- Tailwind CSS
+- Recharts and Chart.js
+- Vitest and Testing Library
 
 ### Backend
 
-- **Node.js** – Server-side runtime environment  
-- **Express.js** – Backend framework for routing and middleware  
-- **Chess.js** – Handles core chess logic (move validation, game state, rules)  
-- **MongoDB** – NoSQL database for storing user data, game history, and content  
+- Node.js and Express
+- MongoDB and Mongoose
+- Socket.IO
+- JSON Web Tokens stored in HttpOnly cookies
+- bcrypt password hashing
+- Multer file uploads
+- Swagger/OpenAPI
+- Jest and Supertest
 
----
+## Project structure
 
-## ⚙️ Getting Started
+```text
+.
+|-- Backend/
+|   |-- controllers/
+|   |-- jobs/
+|   |-- middlewares/
+|   |-- models/
+|   |-- routes/
+|   |-- tests/
+|   `-- server.js
+|-- public/
+|-- src/
+|   |-- components/
+|   |-- redux/
+|   `-- main.jsx
+|-- docker-compose.yml
+|-- Dockerfile
+`-- vite.config.js
+```
 
-Follow the steps below to set up and run ChessMasters locally:
+## Local development
 
-### 📋 Prerequisites
+### Requirements
 
-- Ensure **Node.js** and **npm** are installed on your system.
+- Node.js 22 or newer
+- npm
+- MongoDB, either locally or through a hosted connection
 
----
+### 1. Install dependencies
 
-### 🛠️ Install Dependencies
-
-In the root directory:
+From the project root:
 
 ```bash
 npm install
-````
+```
 
-Navigate to the backend directory and install backend dependencies:
+Then install backend dependencies:
 
 ```bash
 cd Backend
 npm install
+cd ..
 ```
 
----
+### 2. Configure the frontend
 
-### ▶️ Running the Application
+Copy `.env.example` to `.env`:
 
-Start the frontend (from the root folder):
+```env
+VITE_BACKEND=http://localhost:3000
+```
+
+Vite reads this value at build time. Restart the frontend after changing it.
+
+### 3. Configure the backend
+
+Create `Backend/.env`:
+
+```env
+PORT=3000
+JWT_SECRET_KEY=replace-with-a-long-random-secret
+MONGODB_URI=mongodb://localhost:27017/chessmasters
+FRONTEND_URL=http://localhost:5173
+VITE_BACKEND=http://localhost:3000
+REDIS_URL=redis://localhost:6379
+```
+
+`VITE_BACKEND` on the backend is the public URL the server uses for its internal game-result requests. In production, set it to the deployed backend URL. `REDIS_URL` enables persistent active-game snapshots and cross-instance Socket.IO broadcasts. When it is omitted, the backend falls back to single-instance in-memory coordination.
+
+Never commit real secrets or production connection strings.
+
+### 4. Start the application
+
+Run the backend from `Backend`:
+
+```bash
+npm start
+```
+
+In another terminal, run the frontend from the project root:
 
 ```bash
 npm run dev
 ```
 
-Start the backend (from the `Backend` directory):
+Open [http://localhost:5173](http://localhost:5173).
+
+## Docker
+
+The included Compose configuration starts the frontend, backend, MongoDB, and Redis:
 
 ```bash
-node server.js
+docker compose up --build
 ```
 
----
+The frontend is available at [http://localhost](http://localhost), the backend at `http://localhost:3000`, MongoDB at `mongodb://localhost:27017`, and Redis within Compose at `redis://redis:6379`.
 
-### 🔐 User Roles and Access
+Create `Backend/.env` before starting Compose. When using the Compose MongoDB service, use:
 
-* **Coach/Player:**
+```env
+MONGODB_URI=mongodb://mongo:27017/chessmasters
+```
 
-  * During sign-up, select the appropriate `userType` (e.g., `coach`)
-  * Log in with your registered credentials (you can verify them via the database)
+## User roles
 
-* **Admin:**
+### Player
 
-  * Use the following default credentials to log in:
+Players can play games, view their statistics and history, browse coaches, and activate demo subscriptions to coach content.
 
-    * **Username:** `admin`
-    * **Password:** `secret`
+### Coach
 
----
+Coaches can complete a professional profile, publish and manage content, view subscribers, and inspect revenue and view analytics.
 
-### 🔄 CI/CD and Testing
+### Admin
 
-* CI/CD pipelines are implemented for automated builds, testing, and deployments.
-* Comprehensive test cases are written to ensure feature reliability and maintain code quality.
+The project currently retains the following development credentials:
 
----
+```text
+Username: admin
+Password: secret
+```
 
-### 🤝 Contributing
+Admin API operations require the signed admin session created at login. Replace the hardcoded credentials before using the project in a real production environment.
 
-ChessMasters is an open-source project and contributions are highly encouraged.
+## Commands
 
-To contribute:
+### Frontend
 
-1. Fork the repository.
+```bash
+npm run dev       # Start the Vite development server
+npm run build     # Create the production bundle
+npm run preview   # Preview the production bundle
+npm test          # Run frontend tests with Vitest
+npm run lint      # Run ESLint
+```
 
-2. Create a new branch:
+### Backend
 
-   ```bash
-   git checkout -b feature/YourFeature
-   ```
+Run these commands from `Backend`:
 
-3. Make your changes and commit them.
+```bash
+npm start         # Start the API and Socket.IO server
+npm run dev       # Start with Nodemon
+npm test          # Run Jest/Supertest tests
+```
 
-4. Push your changes:
+## API and authentication
 
-   ```bash
-   git push origin feature/YourFeature
-   ```
+- Swagger UI is served from `/api-docs`.
+- Authentication uses a signed JWT stored in an HttpOnly cookie.
+- Cross-origin frontend requests must include credentials.
+- Admin, coach, player, and internal game endpoints enforce their corresponding access rules.
+- Game result and ELO mutation endpoints are server-internal.
 
-5. Open a pull request describing your changes.
+## Deployment
 
-> Pull requests are welcome and will be reviewed promptly.
+### Frontend on Vercel
 
----
+Set:
 
-### 👥 Contributors
+```env
+VITE_BACKEND=https://your-backend.example.com
+```
 
-This project is developed and maintained by:
+The repository includes `vercel.json`, which builds the Vite application and rewrites client-side routes to `index.html`.
 
-* Mihir Chandra Loke
-* Sundar R
-* Kache Nivas
-* B Venu Gopal Reddy
-* P Sujith Kumar
+### Backend on Render
 
----
+Set:
 
-### 📄 License
+```env
+NODE_ENV=production
+JWT_SECRET_KEY=your-production-secret
+MONGODB_URI=your-production-mongodb-uri
+FRONTEND_URL=https://your-frontend.example.com
+VITE_BACKEND=https://your-backend.example.com
+REDIS_URL=rediss://your-managed-redis-url
+```
 
-This project is licensed under the **MIT License**.
+The included `render.yaml` uses `Backend` as the service directory and `/` as its health-check path.
 
-See the [LICENSE](LICENSE) file for full details.
+## Testing and verification
+
+The project contains:
+
+- Backend controller tests using Jest and Supertest
+- Frontend state tests using Vitest
+- A Vite production build
+- ESLint configuration for source review
+
+Before submitting a change, run:
+
+```bash
+npm test
+npm run build
+cd Backend
+npm test
+```
+
+## Contributors
+
+- Mihir Chandra Loke
+- Sundar R
+- Kache Nivas
+- B Venu Gopal Reddy
+- P Sujith Kumar

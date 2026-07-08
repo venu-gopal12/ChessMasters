@@ -23,6 +23,13 @@ const UserModelSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+UserModelSchema.set("toJSON", {
+  transform: (_document, result) => {
+    delete result.Password;
+    return result;
+  },
+});
+
 UserModelSchema.pre("save", async function (next) {
   if (this.isModified("Password")) {
     const salt = await bcrypt.genSalt(10);

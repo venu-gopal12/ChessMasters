@@ -80,7 +80,7 @@ const Dashboard = () => {
   const handleFormSubmit = (formData) => {
     // Handle form submission logic here
     console.log('Form Submitted:', formData);
-    fetch("${mihirBackend}/auth/register", {
+    fetch(`${mihirBackend}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -98,7 +98,6 @@ const Dashboard = () => {
         setShowAlert(true);
         setTimeout(() => {
           setShowAlert(false);
-          onSignupSuccess();
         }, 3000);
       })
       .catch((err) => {
@@ -542,7 +541,7 @@ const Dashboard = () => {
   const handleDeleteAllGames = async () => {
     setDeleteAllStatus({ isDeleting: true, message: 'Deleting all games...' });
     try {
-      const response = await axios.delete('${mihirBackend}/admin/games', { withCredentials: true });
+      const response = await axios.delete(`${mihirBackend}/admin/games`, { withCredentials: true });
       console.log('Delete all games response:', response.data);
       setDeleteAllStatus({ 
         isDeleting: false, 

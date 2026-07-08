@@ -64,6 +64,7 @@ const router = express.Router();
  *         description: Authentication failed
  */
 router.post('/login', adminLogin);
+router.use(isAdmin);
 
 /**
  * @openapi

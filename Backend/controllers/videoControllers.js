@@ -5,19 +5,21 @@ export const recordVideoView = async (req, res) => {
     const { id } = req.params;
     const userId = req.user ? req.user.id : null;
 
-    const video = await Video.findById(id);
-    
+    const video = await Video.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          views: {
+            $each: [{ user: userId, viewedAt: new Date() }],
+            $slice: -5000
+          }
+        }
+      },
+      { new: false }
+    );
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-
-    // Add the view with timestamp
-    video.views.push({
-      user: userId,
-      viewedAt: new Date()
-    });
-
-    await video.save();
     
     return res.status(200).json({ message: "View recorded successfully" });
   } catch (error) {

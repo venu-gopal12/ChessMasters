@@ -10,17 +10,10 @@ function generateToken(userId, role) {
 
 export const registerUser = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-
     const { UserName, Email, Password, Role, Fide_id } = req.body;
-
-    console.log("Role:", Role);
     const userExists = await UserModel.findOne({ Email });
-    console.log("User exists:", userExists);
     if (userExists) {
       return res.status(400).json({ message: "Email already registered" });
-    } else {
-      console.log("User does not exist");
     }
 
     const user = new UserModel({
@@ -99,7 +92,7 @@ export const signIn = async (req, res) => {
     return res.status(200).json({
       message: "Signed in successfully",
       userType: isAdmin ? "admin" : user?.Role,
-      token,
+      userId: payloadId,
     });
   } catch (error) {
     console.error("Error during sign-in:", error);
@@ -114,14 +107,19 @@ export const logout = (req, res) => {
 };
 
 export const editDetails = async (req, res) => {
-  const { email, userData } = req.body;
-
   try {
-    const user = await UserModel.findOneAndUpdate({ Email: email }, userData, { new: true });
+    if (req.user.role === "admin") {
+      return res.status(403).send({ message: "Admin profile cannot be edited here" });
+    }
+    const source = req.body.userData || req.body;
+    const user = await UserModel.findById(req.user.id);
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
-
+    if (source.UserName || source.name) user.UserName = source.UserName || source.name;
+    if (source.Email || source.email) user.Email = source.Email || source.email;
+    if (source.Password || source.password) user.Password = source.Password || source.password;
+    await user.save();
     res.status(200).send({ message: "User details updated successfully", user });
   } catch (error) {
     res.status(400).send({ message: "Error updating details", error });
@@ -130,16 +128,11 @@ export const editDetails = async (req, res) => {
 
 export const getUserDetails = async (req, res) => {
   try {
-    const token = req.cookies.authorization || req.headers.token;
-    if (!token) return res.status(403).json({ message: "No token provided." });
-
-    const decoded = jwt.verify(token, jwtSecretKey);
-
-    if (decoded.role === "admin") {
+    if (req.user.role === "admin") {
       return res.status(200).json({ message: "Admin access granted." });
     }
 
-    const user = await UserModel.findById(decoded.userId).select("-password");
+    const user = await UserModel.findById(req.user.id).select("-Password");
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -147,6 +140,6 @@ export const getUserDetails = async (req, res) => {
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user details:", error);
-    return res.status(500).json({ message: "Internal server error." });
+    return res.status(error.name === "JsonWebTokenError" ? 401 : 500).json({ message: "Unable to fetch user details." });
   }
 };

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests --forceExit",
+    "test": "vitest run",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -14,7 +14,6 @@
     "@reduxjs/toolkit": "^2.4.0",
     "axios": "^1.7.7",
     "chess.js": "^0.13.3",
-    "chessmasters-frontend": "file:",
     "dotenv": "^16.5.0",
     "fetch": "^1.1.0",
     "framer-motion": "^11.12.0",
@@ -36,6 +35,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -45,8 +46,13 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "jsdom": "^29.1.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "brace-expansion": "^1.1.13"
   }
 }

@@ -6,6 +6,7 @@ import {
   getMyGames,
 } from "../controllers/gameControllers.js";
 import { authMiddleware } from "../middlewares/authMiddlerware.js"; 
+import { internalOnly } from "../middlewares/internalOnly.js";
 
 const router = Router();
 
@@ -62,7 +63,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.post("/saveGameResult", saveGameResult);
+router.post("/saveGameResult", internalOnly, saveGameResult);
 /**
  * @openapi
  * /api/games/allgames:
@@ -102,7 +103,7 @@ router.post("/saveGameResult", saveGameResult);
  *       500:
  *         description: Server error
  */
-router.get("/allgames", getAllGames); // Move this route before the :gameId route
+router.get("/allgames", authMiddleware, getAllGames);
 /**
  * @openapi
  * /api/games/mygames:
@@ -197,7 +198,7 @@ router.get("/mygames", authMiddleware, getMyGames); // 🔹 Use authMiddleware
  *       500:
  *         description: Server error
  */
-router.get("/:gameId", getGameDetails);
+router.get("/:gameId", authMiddleware, getGameDetails);
 
 export default router;
 

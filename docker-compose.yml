@@ -7,10 +7,13 @@ services:
       dockerfile: Dockerfile
     env_file:
       - Backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
     ports:
       - '3000:3000'
     depends_on:
       - mongo
+      - redis
     networks:
       - app-network
 
@@ -41,9 +44,19 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
   mongo-data:
+  redis-data:

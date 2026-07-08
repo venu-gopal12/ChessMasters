@@ -39,8 +39,12 @@ const ArticleDetail = () => {
     </div>
   );
 
-  let path = article.filePath;
-  let newPath = `${mihirBackend}/${path.replace(/\\/g, '/')}`;
+  const getFileUrl = (path = '') => {
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${mihirBackend}/${path.replace(/\\/g, '/')}`;
+  };
+
+  const fileUrl = getFileUrl(article.filePath);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 
@@ -79,7 +83,7 @@ const ArticleDetail = () => {
               <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href={newPath} 
+                href={fileUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 

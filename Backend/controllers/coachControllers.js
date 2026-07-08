@@ -3,53 +3,30 @@ import CoachDetails from "../models/CoachModel.js";
 import ArticleModel from "../models/articleModel.js"; // for default export
 import UserModel from "../models/userModel.js";
 import videoModel from "../models/videoModel.js";
-import jwt from "jsonwebtoken";
-import upload, { handleUploadErrors } from "../middlewares/uploadMiddleware.js";
-import { authMiddleware } from "../middlewares/authMiddlerware.js";
-import { jwtSecretKey } from "../config.js";
+import upload, { deleteCloudinaryAsset, getCloudinaryResourceType } from "../middlewares/uploadMiddleware.js";
 import mongoose from "mongoose";
 import Video from "../models/videoModel.js";
 import Article from "../models/articleModel.js";
 import ErrorHandler, { catchAsync } from "../middlewares/errorHandler.js";
 
+const getUploadedFileData = (file) => ({
+  filePath: file.path,
+  cloudinaryPublicId: file.filename || file.public_id || "",
+  cloudinaryResourceType: file.resource_type || getCloudinaryResourceType(file.mimetype)
+});
+
 
 
 export const getCoachDetails = async (req, res) => {
   try {
-    // Check token from cookies or headers
-    const token = req.cookies.authorization || req.headers.authorization;
-    console.log("Token received from client:", token); // Debugging statement
-
-    if (!token) {
-      console.error("No token provided."); // Debugging statement
-      return res.status(403).json({ message: "No token provided." });
-    }
-
-    let decoded;
-    try {
-      // Ensure the token format is "Bearer <token>"
-      const actualToken = token.startsWith("Bearer ")
-        ? token.split(" ")[1]
-        : token;
-      decoded = jwt.verify(actualToken, process.env.JWT_SECRET_KEY);
-      console.log("Decoded Token:", decoded); // Debugging statement
-    } catch (err) {
-      console.error("Token verification failed:", err); // Debugging statement
-      return res.status(403).json({ message: "Invalid token." });
-    }
-
-    console.log("User ID from token:", decoded.userId); // Debugging statement
-
     const coachDetails = await CoachDetails.findOne({
-      user: decoded.userId,
-    }).select("-password");
+      user: req.userId,
+    });
 
     if (!coachDetails) {
-      console.error("No coach found with user ID:", decoded.userId); // Debugging statement
       return res.status(404).json({ message: "Coach details not found" });
     }
 
-    console.log("Coach details found:", coachDetails); // Debugging statement
     res.status(200).json(coachDetails);
   } catch (error) {
     console.error("Error fetching coach details:", error); // Debugging statement
@@ -166,7 +143,7 @@ export const addArticle = [
       coach: coachId,
       title,
       content,
-      filePath: req.file.path,
+      ...getUploadedFileData(req.file),
       dateCreated: new Date()
     });
 
@@ -206,7 +183,7 @@ export const addVideo = [
       coach: coachId,
       title,
       content: content || '',
-      filePath: req.file.path,
+      ...getUploadedFileData(req.file),
       dateCreated: new Date()
     });
 
@@ -416,6 +393,18 @@ export const deleteCoachAccount = async (req, res) => {
       console.log(`Removed coach from ${subscribedPlayerIds.length} players' subscriptions`);
     }
     
+    const articlesToDelete = await ArticleModel.find({ coach: coachId });
+    const videosToDelete = await videoModel.find({ coach: coachId });
+
+    await Promise.all([
+      ...articlesToDelete.map(article =>
+        deleteCloudinaryAsset(article.cloudinaryPublicId, article.cloudinaryResourceType)
+      ),
+      ...videosToDelete.map(video =>
+        deleteCloudinaryAsset(video.cloudinaryPublicId, video.cloudinaryResourceType)
+      )
+    ]);
+
     // Step 2: Delete all articles by this coach
     const articlesDeleteResult = await ArticleModel.deleteMany({ coach: coachId });
     console.log(`Deleted ${articlesDeleteResult.deletedCount} articles`);
@@ -490,9 +479,12 @@ export const updateArticle = [
       content: content || article.content
     };
     
-    // If a new file was uploaded, update the filePath
+    const oldCloudinaryPublicId = article.cloudinaryPublicId;
+    const oldCloudinaryResourceType = article.cloudinaryResourceType;
+
+    // If a new file was uploaded, update the Cloudinary file details
     if (req.file) {
-      updateData.filePath = req.file.path;
+      Object.assign(updateData, getUploadedFileData(req.file));
     }
     
     console.log("Updating article with data:", updateData);
@@ -503,6 +495,10 @@ export const updateArticle = [
       updateData, 
       { new: true }
     );
+
+    if (req.file && oldCloudinaryPublicId) {
+      await deleteCloudinaryAsset(oldCloudinaryPublicId, oldCloudinaryResourceType);
+    }
 
     res.status(200).json({ 
       success: true, 
@@ -563,9 +559,12 @@ export const updateVideo = [
       content: content || video.content
     };
     
-    // If a new file was uploaded, update the filePath
+    const oldCloudinaryPublicId = video.cloudinaryPublicId;
+    const oldCloudinaryResourceType = video.cloudinaryResourceType;
+
+    // If a new file was uploaded, update the Cloudinary file details
     if (req.file) {
-      updateData.filePath = req.file.path;
+      Object.assign(updateData, getUploadedFileData(req.file));
     }
     
     console.log("Updating video with data:", updateData);
@@ -576,6 +575,10 @@ export const updateVideo = [
       updateData, 
       { new: true }
     );
+
+    if (req.file && oldCloudinaryPublicId) {
+      await deleteCloudinaryAsset(oldCloudinaryPublicId, oldCloudinaryResourceType);
+    }
 
     res.status(200).json({ 
       success: true, 
@@ -610,6 +613,8 @@ export const deleteArticle = async (req, res) => {
       return res.status(403).json({ message: 'You are not authorized to delete this article' });
     }
     
+    await deleteCloudinaryAsset(article.cloudinaryPublicId, article.cloudinaryResourceType);
+
     // Delete the article
     await ArticleModel.findByIdAndDelete(id);
     
@@ -648,6 +653,8 @@ export const deleteVideo = async (req, res) => {
       return res.status(403).json({ message: 'You are not authorized to delete this video' });
     }
     
+    await deleteCloudinaryAsset(video.cloudinaryPublicId, video.cloudinaryResourceType);
+
     // Delete the video
     await videoModel.findByIdAndDelete(id);
     

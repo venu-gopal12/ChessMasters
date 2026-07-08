@@ -7,18 +7,6 @@ import { mihirBackend } from '../../config.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Add axios interceptor for global error handling
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 403) {
-      // Redirect to home page (login form) on authentication failure
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
-
 const ViewChart = () => {
   const navigate = useNavigate();
   const { coachId } = useParams(); // Get coach ID from URL if available

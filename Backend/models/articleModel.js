@@ -8,12 +8,16 @@ const ViewSchema = new Schema({
 });
 
 const ArticleSchema = new Schema({
-  coach: { type: Schema.Types.ObjectId, ref: "CoachDetails", required: true },
+  coach: { type: Schema.Types.ObjectId, ref: "UserModel", required: true },
   title: { type: String, required: true },
   content: { type: String, required: true },
   filePath: { type: String, required: true },  // New field for file path
+  cloudinaryPublicId: { type: String, default: "" },
+  cloudinaryResourceType: { type: String, default: "raw" },
   createdAt: { type: Date, default: Date.now },
   views: [ViewSchema]
 });
+
+ArticleSchema.index({ coach: 1, createdAt: -1 });
 
 export default model("Article", ArticleSchema);

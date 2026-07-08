@@ -428,7 +428,7 @@ router.get("/:id", getPlayerDetailsById);
  *       500:
  *         description: Server error
  */
-router.get("/:playerId/subscribedCoaches", getSubscribedCoaches);
+router.get("/:playerId/subscribedCoaches", isPlayer, getSubscribedCoaches);
 /**
  * @openapi
  * /api/players/{id}/subscriptionstatus:
@@ -464,7 +464,7 @@ router.get("/:playerId/subscribedCoaches", getSubscribedCoaches);
  *       500:
  *         description: Server error
  */
-router.get("/:id/subscriptionstatus", subscriptionStatus);
+router.get("/:coachId/subscriptionstatus", isPlayer, subscriptionStatus);
 /**
  * @openapi
  * /api/players/{playerId}/game-stats:
@@ -551,7 +551,7 @@ router.get("/:playerId/game-stats", getPlayerGameStats);
  *       500:
  *         description: Server error
  */
-router.get("/:playerId/subscribed-articles", getSubscribedCoachArticles);
+router.get("/:playerId/subscribed-articles", isPlayer, getSubscribedCoachArticles);
 /**
  * @openapi
  * /api/players/{playerId}/subscribed-videos:
@@ -602,7 +602,7 @@ router.get("/:playerId/subscribed-articles", getSubscribedCoachArticles);
  *       500:
  *         description: Server error
  */
-router.get("/:playerId/subscribed-videos", getSubscribedCoachVideos); // Add parameterized route for subscribed videos
+router.get("/:playerId/subscribed-videos", isPlayer, getSubscribedCoachVideos);
 
 export default router;
 

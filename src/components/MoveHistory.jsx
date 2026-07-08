@@ -97,7 +97,7 @@ function MoveHistory({ history, onResign, onDrawRequest, gameOver }) {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         div::-webkit-scrollbar {
           width: 6px;
         }

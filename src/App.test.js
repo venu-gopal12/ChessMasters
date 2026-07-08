@@ -1,8 +1,20 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import { beforeEach, describe, expect, test } from 'vitest';
+import userReducer, { clearUser, setUser } from './redux/userSlice';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+describe('user session state', () => {
+  beforeEach(() => localStorage.clear());
+
+  test('stores and clears authenticated user state', () => {
+    const signedIn = userReducer(
+      { userId: null, role: null },
+      setUser({ userId: 'player-1', role: 'player' })
+    );
+    expect(signedIn).toEqual({ userId: 'player-1', role: 'player' });
+    expect(localStorage.getItem('userId')).toBe('player-1');
+
+    expect(userReducer(signedIn, clearUser())).toEqual({
+      userId: null,
+      role: null,
+    });
+  });
 });

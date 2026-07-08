@@ -24,4 +24,7 @@ const CoachDetailsSchema = new Schema({
   ],
 });
 
+CoachDetailsSchema.index({ user: 1 }, { unique: true });
+CoachDetailsSchema.index({ "subscribers.user": 1 });
+
 export default model("CoachDetails", CoachDetailsSchema);

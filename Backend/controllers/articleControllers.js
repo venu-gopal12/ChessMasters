@@ -5,19 +5,21 @@ export const recordArticleView = async (req, res) => {
     const { id } = req.params;
     const userId = req.user ? req.user.id : null;
 
-    const article = await Article.findById(id);
-    
+    const article = await Article.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          views: {
+            $each: [{ user: userId, viewedAt: new Date() }],
+            $slice: -5000
+          }
+        }
+      },
+      { new: false }
+    );
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
-
-    // Add the view with timestamp
-    article.views.push({
-      user: userId,
-      viewedAt: new Date()
-    });
-
-    await article.save();
     
     return res.status(200).json({ message: "View recorded successfully" });
   } catch (error) {

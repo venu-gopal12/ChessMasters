@@ -9,8 +9,41 @@ import AdminModel from '../models/adminModel.js';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jwtSecretKey } from '../config.js';
-import { console } from 'inspector';
 import AdminRevenueModel from '../models/adminRevenueModel.js';
+
+const recalculateUserGameStats = async (userId) => {
+    const games = await GameModel.find({
+        $or: [{ playerWhite: userId }, { playerBlack: userId }]
+    }).sort({ datePlayed: 1 }).select("playerWhite playerBlack winner").lean();
+
+    let gamesWon = 0;
+    let gamesLost = 0;
+    let gamesDraw = 0;
+    let elo = 1200;
+    const eloHistory = [];
+
+    games.forEach((game, index) => {
+        if (game.winner === "Draw") {
+            gamesDraw += 1;
+        } else {
+            const playedWhite = game.playerWhite.toString() === userId.toString();
+            const won = (playedWhite && game.winner === "White")
+                || (!playedWhite && game.winner === "Black");
+            if (won) {
+                gamesWon += 1;
+                elo += 100;
+            } else {
+                gamesLost += 1;
+                elo -= 100;
+            }
+        }
+        eloHistory.push({ gameNumber: index + 1, elo });
+    });
+
+    await UserModel.findByIdAndUpdate(userId, {
+        $set: { gamesWon, gamesLost, gamesDraw, elo, eloHistory }
+    });
+};
 
 export const deletePlayer = async (req, res) => {
     try {
@@ -141,7 +174,14 @@ export const deleteVideo = async (req, res) => {
 export const deleteGame = async (req, res) => {
     try {
         const { gameId } = req.params;
-        await GameModel.findByIdAndDelete(gameId);
+        const deletedGame = await GameModel.findByIdAndDelete(gameId);
+        if (!deletedGame) {
+            return res.status(404).json({ message: "Game not found" });
+        }
+        await Promise.all([
+            recalculateUserGameStats(deletedGame.playerWhite),
+            recalculateUserGameStats(deletedGame.playerBlack)
+        ]);
         res.status(200).json({ message: "Game deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting game", error });
@@ -151,8 +191,20 @@ export const deleteGame = async (req, res) => {
 export const deleteAllGames = async (req, res) => {
     try {
         const result = await GameModel.deleteMany({});
+        await UserModel.updateMany(
+            {},
+            {
+                $set: {
+                    gamesWon: 0,
+                    gamesLost: 0,
+                    gamesDraw: 0,
+                    elo: 1200,
+                    eloHistory: []
+                }
+            }
+        );
         res.status(200).json({ 
-            message: "All games deleted successfully", 
+            message: "All games deleted and player statistics reset successfully",
             count: result.deletedCount 
         });
     } catch (error) {
@@ -212,8 +264,8 @@ export const getvideos = async (req, res) =>{
     try{
         const videos = await VideoModel.find();
         res.status(200).json(videos);
-    }catch{
-        res.status(500).json({ message: "Error fetching videos", error });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching videos", error: error.message });
     }
 }
 
@@ -259,59 +311,11 @@ export const getCoachGameStats = async (req, res) => {
             return res.status(404).json({ message: "Coach user not found" });
         }
         
-        // Convert userId to string for comparison
-        const userIdStr = userId.toString();
-        
-        // FIXED: Use correct field names from gameModel.js - playerWhite and playerBlack
-        const games = await GameModel.find({
-            $or: [
-                { playerWhite: userId },
-                { playerBlack: userId }
-            ]
-        });
-        
-        // Calculate stats
-        let totalGamesPlayed = games.length;
-        let gamesWon = 0;
-        let gamesLost = 0;
-        let gamesDraw = 0;
-        
-        games.forEach(game => {
-            const whiteId = game.playerWhite.toString(); // FIXED: Use playerWhite
-            const blackId = game.playerBlack.toString(); // FIXED: Use playerBlack
-            
-            if (game.winner === 'Draw') {
-                gamesDraw++;
-            } else if (
-                (whiteId === userIdStr && game.winner === 'White') || 
-                (blackId === userIdStr && game.winner === 'Black')
-            ) {
-                gamesWon++;
-            } else {
-                gamesLost++;
-            }
-        });
-        
-        // Alternative query to double-check our counts (using correct field names)
-        const wonAsWhite = await GameModel.countDocuments({ playerWhite: userId, winner: 'White' });
-        const wonAsBlack = await GameModel.countDocuments({ playerBlack: userId, winner: 'Black' });
-        const lostAsWhite = await GameModel.countDocuments({ playerWhite: userId, winner: 'Black' });
-        const lostAsBlack = await GameModel.countDocuments({ playerBlack: userId, winner: 'White' });
-        const drawGames = await GameModel.countDocuments({ 
-            $or: [{ playerWhite: userId }, { playerBlack: userId }],
-            winner: 'Draw'
-        });
-        
-        // Use the direct counts as a fallback
-        if (totalGamesPlayed === 0 && (wonAsWhite + wonAsBlack + lostAsWhite + lostAsBlack + drawGames > 0)) {
-            totalGamesPlayed = wonAsWhite + wonAsBlack + lostAsWhite + lostAsBlack + drawGames;
-            gamesWon = wonAsWhite + wonAsBlack;
-            gamesLost = lostAsWhite + lostAsBlack;
-            gamesDraw = drawGames;
-        }
-        
-        // Get coach's ELO rating from the user object
-        const elo = user.elo || 0;
+        const gamesWon = user.gamesWon || 0;
+        const gamesLost = user.gamesLost || 0;
+        const gamesDraw = user.gamesDraw || 0;
+        const totalGamesPlayed = gamesWon + gamesLost + gamesDraw;
+        const elo = user.elo || 1200;
         
         const stats = {
             totalGamesPlayed,
@@ -355,7 +359,7 @@ export const updateRevenue = async (req, res) => {
     try {
         const { amount, description = "Subscription payment" } = req.body;
         
-        if (!amount || isNaN(parseFloat(amount))) {
+        if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
             return res.status(400).json({ message: "Invalid amount provided" });
         }
         

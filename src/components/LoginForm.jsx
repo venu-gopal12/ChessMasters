@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { jwtDecode } from "jwt-decode";
 import { mihirBackend } from "../../config.js";
 
 
@@ -40,9 +39,7 @@ function LoginForm({ onLoginSuccess }) {
 
           if (!response.ok) throw new Error(data.message || "Unknown error occurred");
 
-          const token = data.token;
-          const decodedToken = jwtDecode(token);
-          const userId = decodedToken.userId;
+          const userId = data.userId;
           const role = data.userType || data.role;
 
           console.log("Login successful: userId =", userId, "role =", role);
@@ -64,9 +61,8 @@ function LoginForm({ onLoginSuccess }) {
     if (authResponse) {
       const { data, ok } = authResponse;
       if (ok) {
-        const decodedToken = jwtDecode(data.token);
         const role = data.userType || data.role;
-        const userId = decodedToken.userId;
+        const userId = data.userId;
 
         onLoginSuccess();
 

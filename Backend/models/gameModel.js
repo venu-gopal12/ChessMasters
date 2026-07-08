@@ -27,4 +27,8 @@ const GameSchema = new Schema({
   },
 });
 
+GameSchema.index({ playerWhite: 1, datePlayed: -1 });
+GameSchema.index({ playerBlack: 1, datePlayed: -1 });
+GameSchema.index({ datePlayed: -1 });
+
 export default model("Game", GameSchema);

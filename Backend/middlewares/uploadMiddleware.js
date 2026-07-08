@@ -1,43 +1,54 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import ErrorHandler from './errorHandler.js';
 
-// Ensure upload directories exist
-const createUploadDirs = () => {
-  const dirs = ['uploads', 'uploads/videos', 'uploads/articles', 'uploads/images'];
-  dirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created directory: ${dir}`);
-    }
-  });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const getCloudinaryResourceType = (mimetype = '') => {
+  if (mimetype.startsWith('video/')) return 'video';
+  if (mimetype.startsWith('image/')) return 'image';
+  return 'raw';
 };
 
-// Initialize directories
-createUploadDirs();
+const getUploadFolder = (mimetype = '') => {
+  if (mimetype.startsWith('video/')) return 'chessmasters/videos';
+  if (mimetype.startsWith('image/')) return 'chessmasters/images';
+  return 'chessmasters/articles';
+};
 
-// Configure storage for Multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) {
-      cb(null, 'uploads/videos'); // Directory for video uploads
-    } else if (
-      file.mimetype === 'application/pdf' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ) {
-      cb(null, 'uploads/articles'); // Directory for article uploads
-    } else if (file.mimetype.startsWith('image/')) {
-      cb(null, 'uploads/images'); // Directory for image uploads
-    } else {
-      cb(new ErrorHandler('Invalid file type', 400), false);
-    }
-  },
-  filename: (req, file, cb) => {
-    // Create a safe filename
-    const originalName = file.originalname.toLowerCase().replace(/\s+/g, '-');
-    const fileName = `${Date.now()}-${originalName}`;
-    cb(null, fileName);
+const sanitizeBaseName = (filename = 'upload') => {
+  const withoutExtension = filename.replace(/\.[^/.]+$/, '');
+  return withoutExtension
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'upload';
+};
+
+const getExtension = (filename = '') => {
+  const match = filename.toLowerCase().match(/\.[a-z0-9]+$/);
+  return match ? match[0] : '';
+};
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const timestamp = Date.now();
+    const resourceType = getCloudinaryResourceType(file.mimetype);
+    const extension = resourceType === 'raw' ? getExtension(file.originalname) : '';
+
+    return {
+      folder: getUploadFolder(file.mimetype),
+      resource_type: resourceType,
+      public_id: `${timestamp}-${sanitizeBaseName(file.originalname)}${extension}`,
+      use_filename: false,
+      unique_filename: false,
+    };
   },
 });
 
@@ -57,7 +68,7 @@ const fileFilter = (req, file, cb) => {
 
 // Custom file size limits
 const limits = {
-  fileSize: 50 * 1024 * 1024, // 50MB max file size
+  fileSize: 100 * 1024 * 1024, // 100MB max file size
 };
 
 // Create multer upload instance
@@ -84,5 +95,19 @@ export const handleUploadErrors = (req, res, next) => {
     next();
   };
 };
+
+export const deleteCloudinaryAsset = async (publicId, resourceType = 'raw') => {
+  if (!publicId) return;
+  try {
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+      invalidate: true,
+    });
+  } catch (error) {
+    console.error('Error deleting Cloudinary asset:', error);
+  }
+};
+
+export { getCloudinaryResourceType };
 
 export default upload;

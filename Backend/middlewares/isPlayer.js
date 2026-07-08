@@ -24,8 +24,7 @@ export const isPlayer = async (req, res, next) => {
     // Attach user information to the request object
     req.userId = user._id;
     next();
-  } catch (error) {
-    console.error("Error in token validation:", error);
-    return res.status(500).json({ message: "Internal server error from token" });
+  } catch {
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

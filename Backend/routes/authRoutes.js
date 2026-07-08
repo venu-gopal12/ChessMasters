@@ -6,6 +6,7 @@ import {
   editDetails,
   getUserDetails
 } from "../controllers/authControllers.js";
+import { authMiddleware } from "../middlewares/authMiddlerware.js";
 
 const router = Router();
 
@@ -203,7 +204,7 @@ router.post("/logout", logout);
  *       500:
  *         description: Server error
  */
-router.put("/editdetails", editDetails);
+router.put("/editdetails", authMiddleware, editDetails);
 
 /**
  * @openapi
@@ -245,7 +246,7 @@ router.put("/editdetails", editDetails);
  *       500:
  *         description: Server error
  */
-router.get("/details", getUserDetails);
+router.get("/details", authMiddleware, getUserDetails);
 
 export default router;
 

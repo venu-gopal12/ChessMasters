@@ -63,32 +63,9 @@ const UpdateProfile = () => {
     useEffect(() => {
         const fetchCoachProfile = async () => {
             try {
-                // Get token more reliably
-                let token;
-                const cookies = document.cookie.split(';');
-                for (const cookie of cookies) {
-                    const [name, value] = cookie.trim().split('=');
-                    if (name === 'authorization') {
-                        token = value;
-                        break;
-                    }
-                }
-                
-                if (!token) {
-                    console.error("No token found in cookies");
-                    setError("Authentication error: No token found");
-                    setLoading(false);
-                    return;
-                }
-                
-                console.log("Using token:", token);
-                
                 const response = await fetch(`${mihirBackend}/coach/details`, {
                     credentials: "include",
                     method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    },
                 });
                 
                 console.log("Response status:", response.status);
@@ -179,24 +156,6 @@ const UpdateProfile = () => {
                     .filter(lang => lang);
             }
             
-            // Get token more reliably
-            let token;
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === 'authorization') {
-                    token = value;
-                    break;
-                }
-            }
-            
-            if (!token) {
-                console.error("No token found in cookies");
-                setError("Authentication error: No token found");
-                return;
-            }
-            
-            console.log("Using token for profile update:", token);
             console.log("Updating profile with data:", updatedFields);
             
             // Use the completeProfile endpoint instead of updateProfile
@@ -205,7 +164,6 @@ const UpdateProfile = () => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(updatedFields),
             });
@@ -329,4 +287,4 @@ const UpdateProfile = () => {
     );
 };
 
-export default UpdateProfile; 
+export default UpdateProfile;

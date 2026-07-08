@@ -10,6 +10,7 @@ const {
   FRONTEND_URL,
   MONGODB_URI,
   VITE_BACKEND,
+  REDIS_URL,
 } = process.env;
 
 // Validate required variables
@@ -23,3 +24,4 @@ export const frontendUrl = FRONTEND_URL || "http://localhost:3000"; // default f
 export const mongodbUri = MONGODB_URI || "mongodb://localhost:27017/chessmasters"; // default fallback
 export const mihirBackend = VITE_BACKEND
 //  || "http://localhost:3000"; // default fallback
+export const redisUrl = REDIS_URL;

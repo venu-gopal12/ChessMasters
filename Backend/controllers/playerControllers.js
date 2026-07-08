@@ -2,6 +2,8 @@ import UserModel  from "../models/userModel.js";
 import CoachDetails from "../models/CoachModel.js";
 import Article from "../models/articleModel.js";
 import Video from "../models/videoModel.js";
+import AdminRevenueModel from "../models/adminRevenueModel.js";
+import Game from "../models/gameModel.js";
 
 export const getPlayerDetails = async (req, res) => {
   try {
@@ -20,7 +22,7 @@ export const getPlayerDetails = async (req, res) => {
 
 export const getPlayerDetailsById = async (req, res) => {
   try {
-    const { playerId } = req.params; // playerId is passed as a route parameter
+    const playerId = req.params.playerId || req.params.id;
     const player = await UserModel.findById(playerId);
 
     if (!player) {
@@ -38,35 +40,63 @@ export const subscribeToCoach = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("User ID from token:", req.userId);
 
-    const { coachId } = req.body;
+    const { coachId, plan } = req.body;
     const playerId = req.userId;
-    const SUBSCRIPTION_REVENUE = 5.04; // Revenue per subscription in dollars
+    const plans = {
+      Standard: { coachRevenue: 5.04, adminRevenue: 4.95 }
+    };
+    const selectedPlan = plans[plan];
+    if (!selectedPlan) {
+      return res.status(400).json({ message: "Invalid subscription plan" });
+    }
 
-    // Find the coach by ID
-    const coach = await CoachDetails.findById(coachId);
     const player = await UserModel.findById(playerId);
-    console.log("Found coach:", coach);
-
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+    const coach = await CoachDetails.findOneAndUpdate(
+      { _id: coachId, "subscribers.user": { $ne: playerId } },
+      {
+        $push: { subscribers: { user: playerId, subscribedAt: new Date() } },
+        $inc: { revenue: selectedPlan.coachRevenue }
+      },
+      { new: true }
+    );
     if (!coach) {
+      if (await CoachDetails.exists({ _id: coachId })) {
+        return res.status(409).json({ message: "You are already subscribed to this coach" });
+      }
       return res.status(404).json({ message: "Coach not found" });
     }
-
-    if (coach.subscribers.some(subscriber => subscriber.user.toString() === playerId)) {
-      return res.status(400).json({ message: "You are already subscribed to this coach" });
-    }
-
-    // Store only the user ID in subscribers
-    coach.subscribers.push({ user: playerId, subscribedAt: new Date() });
-    
-    // Update the coach's revenue - add $5.04 for each new subscription
-    coach.revenue = (coach.revenue || 0) + SUBSCRIPTION_REVENUE;
-    
-    await coach.save();
-
-    // Store coach's user ID in player's subscribedCoaches
-    if (!player.subscribedCoaches.includes(coach.user)) {
-      player.subscribedCoaches.push(coach.user);
-      await player.save();
+    try {
+      await UserModel.updateOne(
+        { _id: playerId },
+        { $addToSet: { subscribedCoaches: coach.user } }
+      );
+      await AdminRevenueModel.findOneAndUpdate(
+        {},
+        {
+          $inc: { totalRevenue: selectedPlan.adminRevenue },
+          $set: { lastUpdated: new Date() },
+          $push: {
+            transactionHistory: {
+              amount: selectedPlan.adminRevenue,
+              description: `${plan} subscription`,
+              date: new Date()
+            }
+          }
+        },
+        { upsert: true }
+      );
+    } catch (error) {
+      await CoachDetails.updateOne(
+        { _id: coachId },
+        {
+          $pull: { subscribers: { user: playerId } },
+          $inc: { revenue: -selectedPlan.coachRevenue }
+        }
+      );
+      throw error;
     }
 
     res.status(200).json({ message: "Successfully subscribed to coach", coachId });
@@ -78,7 +108,7 @@ export const subscribeToCoach = async (req, res) => {
 
 export const getSubscribedCoaches = async (req, res) => {
   try {
-    const { playerId } = req.params;
+    const playerId = req.userId;
 
     // Find the player by ID
     const player = await UserModel.findById(playerId);
@@ -127,10 +157,13 @@ export const getSubscribedCoaches = async (req, res) => {
 
 export const subscriptionStatus = async (req,res) => {
   const { coachId } = req.params;
-  const { playerId } = req.query;
+  const playerId = req.userId;
   try {
     const coach = await CoachDetails.findById(coachId);
-    const isSubscribed = coach.subscribers.includes(playerId);
+    if (!coach) return res.status(404).json({ message: "Coach not found" });
+    const isSubscribed = coach.subscribers.some(
+      subscription => subscription.user.toString() === playerId
+    );
 
     res.status(200).json({ isSubscribed });
   } catch (error) {
@@ -159,24 +192,45 @@ export const getPlayerGameStats = async (req, res) => {
   try {
     const { playerId } = req.params; // Extract playerId from route parameters
 
-    // Fetch the player by ID and select the relevant fields
-    const player = await UserModel.findById(playerId, 'gamesWon gamesLost gamesDraw elo');
-    console.log('player', player);
+    const player = await UserModel.findById(playerId, "_id");
 
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
 
-    // Calculate total games played
-    const totalGamesPlayed = player.gamesWon + player.gamesLost + (player.gamesDraw || 0);
+    const games = await Game.find({
+      $or: [{ playerWhite: playerId }, { playerBlack: playerId }]
+    }).select("playerWhite playerBlack winner").lean();
+
+    let gamesWon = 0;
+    let gamesLost = 0;
+    let gamesDraw = 0;
+    games.forEach(game => {
+      if (game.winner === "Draw") {
+        gamesDraw += 1;
+        return;
+      }
+      const playedWhite = game.playerWhite.toString() === playerId.toString();
+      const won = (playedWhite && game.winner === "White")
+        || (!playedWhite && game.winner === "Black");
+      if (won) gamesWon += 1;
+      else gamesLost += 1;
+    });
+
+    const totalGamesPlayed = games.length;
+    const elo = 1200 + (gamesWon * 100) - (gamesLost * 100);
+
+    await UserModel.findByIdAndUpdate(playerId, {
+      $set: { gamesWon, gamesLost, gamesDraw, elo }
+    });
 
     // Return the game stats
     res.status(200).json({
       totalGamesPlayed,
-      gamesWon: player.gamesWon,
-      gamesLost: player.gamesLost,
-      gamesDraw: player.gamesDraw || 0,
-      elo: player.elo,
+      gamesWon,
+      gamesLost,
+      gamesDraw,
+      elo,
     });
   } catch (error) {
     console.error("Error fetching player game stats:", error);
@@ -200,14 +254,7 @@ export const getSubscribedCoachArticles = async (req, res) => {
       coach: { $in: player.subscribedCoaches }
     })
     .sort({ createdAt: -1 }) // Sort by newest first
-    .populate({
-      path: 'coach',
-      select: 'user', // Get the coach's user reference
-      populate: {
-        path: 'user',
-        select: 'UserName' // Get the coach's username
-      }
-    });
+    .populate('coach', 'UserName');
 
     res.status(200).json(articles);
   } catch (error) {
@@ -232,14 +279,7 @@ export const getSubscribedCoachVideos = async (req, res) => {
       coach: { $in: player.subscribedCoaches }
     })
     .sort({ createdAt: -1 }) // Sort by newest first
-    .populate({
-      path: 'coach',
-      select: 'user', // Get the coach's user reference
-      populate: {
-        path: 'user',
-        select: 'UserName' // Get the coach's username
-      }
-    });
+    .populate('coach', 'UserName');
 
     res.status(200).json(videos);
   } catch (error) {

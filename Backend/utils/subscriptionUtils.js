@@ -38,12 +38,10 @@ export const unsubscribeExpiredSubscriptions = async () => {
         await coach.save();
         
         // Remove coach from players' subscribedCoaches
-        for (const playerId of expiredPlayerIds) {
-          await UserModel.updateOne(
-            { _id: playerId },
-            { $pull: { subscribedCoaches: coach.user } }
-          );
-        }
+        await UserModel.updateMany(
+          { _id: { $in: expiredPlayerIds } },
+          { $pull: { subscribedCoaches: coach.user } }
+        );
         
         expiredSubscriptionsCount += expiredPlayerIds.length;
       }
@@ -74,4 +72,4 @@ export const checkPlayerSubscriptionExpiry = async (playerId, coachUserId) => {
     console.error("Error checking subscription expiry:", error);
     return false;
   }
-}; 
+};

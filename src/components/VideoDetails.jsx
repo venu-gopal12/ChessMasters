@@ -39,8 +39,12 @@ const VideoDetail = () => {
     </div>
   );
 
-  let path = video.filePath;
-  let newPath = `${mihirBackend}/${path.replace(/\\/g, '/')}`;
+  const getFileUrl = (path = '') => {
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${mihirBackend}/${path.replace(/\\/g, '/')}`;
+  };
+
+  const fileUrl = getFileUrl(video.filePath);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 py-6 sm:py-8 md:py-12 px-3 sm:px-6 lg:px-8">
@@ -69,12 +73,18 @@ const VideoDetail = () => {
             <p className="text-base sm:text-lg md:text-xl text-gray-800 leading-relaxed mb-4 sm:mb-6 md:mb-8">
               {video.content}
             </p>
+
+            <video
+              controls
+              src={fileUrl}
+              className="w-full rounded-xl bg-black shadow-md mb-4 sm:mb-6 md:mb-8"
+            />
             
             <div className="flex justify-center">
               <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href={newPath} 
+                href={fileUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-green-600 to-black hover:from-green-700 hover:to-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300"

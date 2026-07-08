@@ -9,18 +9,6 @@ import { mihirBackend } from '../../config.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// Add axios interceptor for global error handling
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 403) {
-      // Redirect to home page (login form) on authentication failure
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
-
 const SubscriptionChart = () => {
   const coachId = useSelector((state) => state.user.userId);
   const navigate = useNavigate();

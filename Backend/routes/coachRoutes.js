@@ -118,7 +118,7 @@ router.get("/coaches", getAllCoaches);
  *       500:
  *         description: Server error
  */
-router.get("/details", getCoachDetails);
+router.get("/details", isCoach, getCoachDetails);
 /**
  * @openapi
  * /api/coach/videos:
@@ -166,7 +166,7 @@ router.get("/details", getCoachDetails);
  *       500:
  *         description: Server error
  */
-router.get("/videos", getCoachVideos);
+router.get("/videos", isCoach, getCoachVideos);
 /**
  * @openapi
  * /api/coach/articles:
@@ -211,7 +211,7 @@ router.get("/videos", getCoachVideos);
  *       500:
  *         description: Server error
  */
-router.get("/articles", getCoachArticles);
+router.get("/articles", isCoach, getCoachArticles);
 /**
  * @openapi
  * /api/coach/content/{coachId}:
