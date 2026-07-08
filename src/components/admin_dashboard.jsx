@@ -4,7 +4,7 @@ import AdminNav from './adminnav.jsx';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AddForm } from './AddForm.jsx';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 import {
   LineChart,
@@ -64,9 +64,9 @@ const Dashboard = () => {
     try {
       let response;
       if (title === 'Players') {
-        response = await axios.get(`${mihirBackend}/player/${id}/game-stats`, { withCredentials: true });
+        response = await axios.get(`${chessMastersBackend}/player/${id}/game-stats`, { withCredentials: true });
       } else if (title === 'Coaches') {
-        response = await axios.get(`${mihirBackend}/admin/coach/${id}/game-stats`, { withCredentials: true });
+        response = await axios.get(`${chessMastersBackend}/admin/coach/${id}/game-stats`, { withCredentials: true });
       }
       console.log('Stats data:', response.data);
       setStats(response.data); // Update stats state
@@ -80,7 +80,7 @@ const Dashboard = () => {
   const handleFormSubmit = (formData) => {
     // Handle form submission logic here
     console.log('Form Submitted:', formData);
-    fetch(`${mihirBackend}/auth/register`, {
+    fetch(`${chessMastersBackend}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -121,7 +121,7 @@ const Dashboard = () => {
 
   const fetchData = async (endpoint, setterFunction) => {
     try {
-      const response = await axios.get(`${mihirBackend}/admin/${endpoint}`);
+      const response = await axios.get(`${chessMastersBackend}/admin/${endpoint}`);
       console.log(`${endpoint} data:`, response.data);
       setterFunction(response.data);
       if (endpoint === 'coaches') {
@@ -134,7 +134,7 @@ const Dashboard = () => {
 
   const fetchGamesCount = async () => {
     try {
-      const response = await axios.get(`${mihirBackend}/game/allgames`);
+      const response = await axios.get(`${chessMastersBackend}/game/allgames`);
       const games = Array.isArray(response.data.games) ? response.data.games : [];
       console.log("Games data:", games);
       setGamesCount(games.length);
@@ -149,7 +149,7 @@ const Dashboard = () => {
 
   const fetchTotalRevenue = async () => {
     try {
-      const response = await axios.get(`${mihirBackend}/admin/total-revenue`, { withCredentials: true });
+      const response = await axios.get(`${chessMastersBackend}/admin/total-revenue`, { withCredentials: true });
       console.log("Total revenue data:", response.data);
       setTotalRevenue(response.data.totalRevenue || 0);
     } catch (error) {
@@ -171,7 +171,7 @@ const Dashboard = () => {
     if (!window.confirm(`Are you sure you want to delete this ${type}?`)) return;
     try {
       const endpoint = type === 'coach' ? 'coaches' : `${type}s`;
-      await axios.delete(`${mihirBackend}/admin/${endpoint}/${id}`);
+      await axios.delete(`${chessMastersBackend}/admin/${endpoint}/${id}`);
       fetchData(
         type === 'coach' ? 'coaches' : `${type}s`,
         type === 'player' ? setPlayers : type === 'coach' ? setCoaches : type === 'article' ? setArticles : setVideos
@@ -541,7 +541,7 @@ const Dashboard = () => {
   const handleDeleteAllGames = async () => {
     setDeleteAllStatus({ isDeleting: true, message: 'Deleting all games...' });
     try {
-      const response = await axios.delete(`${mihirBackend}/admin/games`, { withCredentials: true });
+      const response = await axios.delete(`${chessMastersBackend}/admin/games`, { withCredentials: true });
       console.log('Delete all games response:', response.data);
       setDeleteAllStatus({ 
         isDeleting: false, 

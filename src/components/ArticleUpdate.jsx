@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const ArticleUpdate = () => {
   const { id } = useParams();
@@ -21,7 +21,7 @@ const ArticleUpdate = () => {
     const fetchArticle = async () => {
       const token = document.cookie.split("=")[1];
       try {
-        const response = await axios.get(`${mihirBackend}/coach/Articledetail/${id}`, {
+        const response = await axios.get(`${chessMastersBackend}/coach/ArticleDetail/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });
@@ -101,7 +101,7 @@ const ArticleUpdate = () => {
       });
       
       const response = await axios.put(
-        `${mihirBackend}/coach/article/${id}`,
+        `${chessMastersBackend}/coach/article/${id}`,
         updateData,
         {
           headers: { 

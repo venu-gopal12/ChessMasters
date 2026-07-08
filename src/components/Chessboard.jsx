@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import io from "socket.io-client";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 const MAX_BOARD_WIDTH = 715;
 const MIN_BOARD_WIDTH = 280;
@@ -129,7 +129,7 @@ function ChessBoard() {
       return;
     }
 
-    socket.current = io(`${mihirBackend}`, {
+    socket.current = io(`${chessMastersBackend}`, {
       transports: ['websocket'],
       withCredentials: true,
       query: { userId }, // Send userId through query using Redux
@@ -405,7 +405,7 @@ function ChessBoard() {
       console.log("Saving game result with move history and reason:", gameResult);
 
       axios
-        .post(`${mihirBackend}/game/saveGameResult`, gameResult)
+        .post(`${chessMastersBackend}/game/saveGameResult`, gameResult)
         .then(() => console.log("Game result saved successfully"))
         .catch((err) => console.error("Error saving game result:", err));
     }
@@ -650,7 +650,7 @@ function ChessBoard() {
         
         // Use a synchronous request to ensure it completes before page unload
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${mihirBackend}/game/saveGameResult`, false); // false makes it synchronous
+        xhr.open('POST', `${chessMastersBackend}/game/saveGameResult`, false); // false makes it synchronous
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify({
           playerWhite: players.white.userId,

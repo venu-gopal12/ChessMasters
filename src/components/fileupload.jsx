@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector, useDispatch } from "react-redux";
-import { setError, clearError } from "../redux/errorSlice";
-import { mihirBackend } from '../../config.js';
+import { useSelector } from "react-redux";
+import { chessMastersBackend } from '../../config.js';
 
 const FileUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState(null);
@@ -10,10 +9,13 @@ const FileUpload = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadStatus, setUploadStatus] = useState('');
   const coachId = useSelector((state) => state.user.userId);
 
   const handleFileChange = (event) => {
     setSelectedFiles(event.target.files);
+    setUploadMessage('');
+    setUploadStatus('');
   };
 
   const handleSubmit = async (event) => {
@@ -26,8 +28,8 @@ const FileUpload = () => {
 
       try {
         const endpoint = fileType === 'article'
-          ? `${mihirBackend}/coach/addArticle`
-          : `${mihirBackend}/coach/addVideo`;
+          ? `${chessMastersBackend}/coach/addArticle`
+          : `${chessMastersBackend}/coach/addVideo`;
 
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -37,15 +39,19 @@ const FileUpload = () => {
 
         if (response.ok) {
           setUploadMessage(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} uploaded successfully!`);
+          setUploadStatus('success');
           setSelectedFiles(null);
           setTitle('');
           setContent('');
         } else {
-          setUploadMessage(`Failed to upload ${fileType}.`);
+          const errorData = await response.json().catch(() => ({}));
+          setUploadMessage(errorData.message || `Failed to upload ${fileType}.`);
+          setUploadStatus('error');
         }
       } catch (error) {
         console.error(`Error uploading ${fileType}:`, error);
         setUploadMessage(`Error uploading ${fileType}.`);
+        setUploadStatus('error');
       }
     } else {
       alert('Please select a file to upload');
@@ -166,8 +172,11 @@ const FileUpload = () => {
         </form>
 
         {uploadMessage && (
-          <p className="mt-4 text-sm sm:text-base text-center text-green-600 
-                       bg-green-100 p-2 sm:p-3 rounded-lg">
+          <p className={`mt-4 text-sm sm:text-base text-center p-2 sm:p-3 rounded-lg ${
+            uploadStatus === 'success'
+              ? 'text-green-700 bg-green-100'
+              : 'text-red-700 bg-red-100'
+          }`}>
             {uploadMessage}
           </p>
         )}

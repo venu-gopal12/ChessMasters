@@ -1,16 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const ArticleDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [article, setArticle] = useState(null);
+
+  const handleBack = () => {
+    if (location.state?.returnTo) {
+      navigate(location.state.returnTo);
+      return;
+    }
+
+    navigate(`/coach/${article.coach}/CoachDashboard`);
+  };
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const response = await fetch(`${mihirBackend}/coach/ArticleDetail/${id}`, {
+        const response = await fetch(`${chessMastersBackend}/coach/ArticleDetail/${id}`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -39,12 +50,15 @@ const ArticleDetail = () => {
     </div>
   );
 
-  const getFileUrl = (path = '') => {
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${mihirBackend}/${path.replace(/\\/g, '/')}`;
-  };
-
-  const fileUrl = getFileUrl(article.filePath);
+  const downloadUrl = `${chessMastersBackend}/coach/article/${article._id}/download`;
+  const isPdfArticle = [
+    article.fileMimeType,
+    article.fileOriginalName,
+    article.filePath,
+    article.cloudinaryPublicId
+  ].filter(Boolean).some(value => (
+    value === 'application/pdf' || /\.pdf($|[?#])/i.test(value)
+  ));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 
@@ -55,6 +69,18 @@ const ArticleDetail = () => {
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
       >
+        <motion.button
+          type="button"
+          onClick={handleBack}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          className="mb-5 inline-flex items-center px-4 py-2 rounded-lg bg-white/90 
+                     text-green-800 font-semibold shadow-md hover:bg-white 
+                     focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          Back
+        </motion.button>
+
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,11 +105,31 @@ const ArticleDetail = () => {
               {article.content}
             </p>
 
-            <div className="flex justify-center mt-4 sm:mt-6 lg:mt-8">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4 sm:mt-6 lg:mt-8">
+              {isPdfArticle && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    to={`/article-view/${article._id}`}
+                    state={{
+                      returnTo: location.state?.returnTo || `/ArticleDetail/${article._id}`,
+                      articleDetailPath: `/ArticleDetail/${article._id}`,
+                    }}
+                    className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 
+                             border border-transparent text-sm sm:text-base font-medium 
+                             rounded-full shadow-sm text-white 
+                             bg-gradient-to-r from-blue-600 to-black 
+                             hover:from-blue-700 hover:to-gray-900 
+                             focus:outline-none focus:ring-2 focus:ring-offset-2 
+                             focus:ring-blue-500 transition-all duration-300"
+                  >
+                    View Article
+                  </Link>
+                </motion.div>
+              )}
               <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href={fileUrl} 
+                href={downloadUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 

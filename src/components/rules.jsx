@@ -18,7 +18,7 @@ import {
   Shuffle
 } from "lucide-react";
 import axios from "axios";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 
 
@@ -29,7 +29,7 @@ const Rules = () => {
 
   useEffect(() => {
     axios
-      .get(`${mihirBackend}/auth/details`, { withCredentials: true })
+      .get(`${chessMastersBackend}/auth/details`, { withCredentials: true })
       .then((resp) => {
         setDetails(resp.data);
       })

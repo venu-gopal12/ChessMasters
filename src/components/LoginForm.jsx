@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 
 function LoginForm({ onLoginSuccess }) {
@@ -28,7 +28,7 @@ function LoginForm({ onLoginSuccess }) {
     if (isSubmitting) {
       const login = async () => {
         try {
-          const response = await fetch(`${mihirBackend}/auth/signin`, {
+          const response = await fetch(`${chessMastersBackend}/auth/signin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

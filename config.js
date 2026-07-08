@@ -1,2 +1,2 @@
-export const mihirBackend = import.meta.env.VITE_BACKEND 
+export const chessMastersBackend = import.meta.env.VITE_BACKEND 
 || "http://localhost:3000";

@@ -14,13 +14,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { startSubscriptionCleanupJob } from './jobs/subscriptionJobs.js';
 import ErrorHandler, { errorMiddleware } from './middlewares/errorHandler.js';
-import { port, frontendUrl, mongodbUri, mihirBackend, jwtSecretKey } from './config.js';
+import { port, frontendUrl, mongodbUri, chessMastersBackend, jwtSecretKey } from './config.js';
 import { internalApiKey, internalOnly } from './middlewares/internalOnly.js';
 import { closeRedis, connectRedis, loadActiveGames, saveActiveGames, withRedisLock } from './redis.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// import { mihirBackend }  from "../config.js";
+// import { chessMastersBackend }  from "../config.js";
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import playerRoutes from './routes/playerRoutes.js';
@@ -53,7 +53,7 @@ const swaggerOptions = {
       }
     },
     servers: [{
-      url: mihirBackend,
+      url: chessMastersBackend,
       description: 'Production Server'
     }],
     components: {
@@ -462,7 +462,7 @@ io.on('connection', (socket) => {
             const blackMoves = history.filter((_, idx) => idx % 2 !== 0);
 
             // Save the game result with complete move history
-            internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+            internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
               playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
               playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
               moves: {
@@ -483,12 +483,12 @@ io.on('connection', (socket) => {
             });
 
             // Update game stats for winner and loser
-            internalApi.post(`${mihirBackend}/updateGameStats`, {
+            internalApi.post(`${chessMastersBackend}/updateGameStats`, {
               userId: winnerPlayer.userId,
               result: 'win'
             }).catch(console.error);
 
-            internalApi.post(`${mihirBackend}/updateGameStats`, {
+            internalApi.post(`${chessMastersBackend}/updateGameStats`, {
               userId: loserPlayer.userId,
               result: 'loss'
             }).catch(console.error);
@@ -503,7 +503,7 @@ io.on('connection', (socket) => {
             const blackMoves = history.filter((_, idx) => idx % 2 !== 0);
 
             // Save the game result with complete move history
-            internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+            internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
               playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
               playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
               moves: {
@@ -524,7 +524,7 @@ io.on('connection', (socket) => {
 
             // Update game stats for both players with no ELO change
             gameRoom.players.forEach(player => {
-              internalApi.post(`${mihirBackend}/updateGameStats`, {
+              internalApi.post(`${chessMastersBackend}/updateGameStats`, {
                 userId: player.userId,
                 result: 'draw',
                 eloChange: 0
@@ -542,7 +542,7 @@ io.on('connection', (socket) => {
             const blackMoves = history.filter((_, idx) => idx % 2 !== 0);
 
             // Save the game result with complete move history
-            internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+            internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
               playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
               playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
               moves: {
@@ -563,7 +563,7 @@ io.on('connection', (socket) => {
 
             // Update game stats for both players with no ELO change
             gameRoom.players.forEach(player => {
-              internalApi.post(`${mihirBackend}/updateGameStats`, {
+              internalApi.post(`${chessMastersBackend}/updateGameStats`, {
                 userId: player.userId,
                 result: 'draw',
                 eloChange: 0
@@ -580,7 +580,7 @@ io.on('connection', (socket) => {
             const blackMoves = history.filter((_, idx) => idx % 2 !== 0);
 
             // Save the game result with complete move history
-            internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+            internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
               playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
               playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
               moves: {
@@ -603,7 +603,7 @@ io.on('connection', (socket) => {
 
             // Update game stats for both players with no ELO change
             gameRoom.players.forEach(player => {
-              internalApi.post(`${mihirBackend}/updateGameStats`, {
+              internalApi.post(`${chessMastersBackend}/updateGameStats`, {
                 userId: player.userId,
                 result: 'draw',
                 eloChange: 0
@@ -642,7 +642,7 @@ io.on('connection', (socket) => {
         console.log("Resignation - saving with move history:", { whiteMoves, blackMoves });
 
         // Save game result to database
-        internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+        internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
           playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
           playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
           moves: {
@@ -664,12 +664,12 @@ io.on('connection', (socket) => {
         });
 
         // Update game stats for winner and loser
-        internalApi.post(`${mihirBackend}/updateGameStats`, {
+        internalApi.post(`${chessMastersBackend}/updateGameStats`, {
           userId: winnerPlayer.userId,
           result: 'win'
         }).catch(console.error);
 
-        internalApi.post(`${mihirBackend}/updateGameStats`, {
+        internalApi.post(`${chessMastersBackend}/updateGameStats`, {
           userId: loserPlayer.userId,
           result: 'loss'
         }).catch(console.error);
@@ -716,7 +716,7 @@ io.on('connection', (socket) => {
           console.log("Draw agreement - saving with move history:", { whiteMoves, blackMoves });
 
           // Save game result to database
-          internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+          internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
             playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
             playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
             moves: {
@@ -736,13 +736,13 @@ io.on('connection', (socket) => {
           io.to(room).emit('drawAccepted', { reason: 'Agreement' });
 
           // Update game stats for both players with no ELO change
-          internalApi.post(`${mihirBackend}/updateGameStats`, {
+          internalApi.post(`${chessMastersBackend}/updateGameStats`, {
             userId: requester.userId,
             result: 'draw',
             eloChange: 0
           }).catch(console.error);
 
-          internalApi.post(`${mihirBackend}/updateGameStats`, {
+          internalApi.post(`${chessMastersBackend}/updateGameStats`, {
             userId: responder.userId,
             result: 'draw',
             eloChange: 0
@@ -792,7 +792,7 @@ io.on('connection', (socket) => {
               console.log("Disconnection - saving with move history:", { whiteMoves, blackMoves });
 
               // Save game result with complete move history for disconnection
-              internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+              internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
                 playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
                 playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
                 moves: {
@@ -815,13 +815,13 @@ io.on('connection', (socket) => {
               });
 
               // Update game stats for remaining player as winner
-              internalApi.post(`${mihirBackend}/updateGameStats`, {
+              internalApi.post(`${chessMastersBackend}/updateGameStats`, {
                 userId: remainingPlayer.userId,
                 result: 'win'
               }).catch(console.error);
 
               // Update game stats for disconnected player as loser
-              internalApi.post(`${mihirBackend}/updateGameStats`, {
+              internalApi.post(`${chessMastersBackend}/updateGameStats`, {
                 userId: disconnectedPlayer.userId,
                 result: 'loss'
               }).catch(console.error);
@@ -882,7 +882,7 @@ io.on('connection', (socket) => {
         const gameEndReason = reason || 'Unknown';
 
         // Save game result with complete move history
-        internalApi.post(`${mihirBackend}/game/saveGameResult`, {
+        internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
           playerWhite: gameRoom.players.find(p => p.color === 'w').userId,
           playerBlack: gameRoom.players.find(p => p.color === 'b').userId,
           moves: gameHistory,
@@ -902,7 +902,7 @@ io.on('connection', (socket) => {
         if (winner === 'Draw') {
           // For draws, update both players with no ELO change
           gameRoom.players.forEach(player => {
-            internalApi.post(`${mihirBackend}/updateGameStats`, {
+            internalApi.post(`${chessMastersBackend}/updateGameStats`, {
               userId: player.userId,
               result: 'draw',
               eloChange: 0
@@ -915,13 +915,13 @@ io.on('connection', (socket) => {
           const loserPlayer = gameRoom.players.find(p => p.color !== winnerColor);
 
           // Update winner stats
-          internalApi.post(`${mihirBackend}/updateGameStats`, {
+          internalApi.post(`${chessMastersBackend}/updateGameStats`, {
             userId: winnerPlayer.userId,
             result: 'win'
           }).catch(console.error);
 
           // Update loser stats
-          internalApi.post(`${mihirBackend}/updateGameStats`, {
+          internalApi.post(`${chessMastersBackend}/updateGameStats`, {
             userId: loserPlayer.userId,
             result: 'loss'
           }).catch(console.error);

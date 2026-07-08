@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 const UpdateProfile = () => {
     const navigate = useNavigate();
@@ -63,7 +63,7 @@ const UpdateProfile = () => {
     useEffect(() => {
         const fetchCoachProfile = async () => {
             try {
-                const response = await fetch(`${mihirBackend}/coach/details`, {
+                const response = await fetch(`${chessMastersBackend}/coach/details`, {
                     credentials: "include",
                     method: "GET",
                 });
@@ -159,7 +159,7 @@ const UpdateProfile = () => {
             console.log("Updating profile with data:", updatedFields);
             
             // Use the completeProfile endpoint instead of updateProfile
-            const response = await fetch(`${mihirBackend}/coach/completeProfile`, {
+            const response = await fetch(`${chessMastersBackend}/coach/completeProfile`, {
                 credentials: "include",
                 method: "PUT",
                 headers: {

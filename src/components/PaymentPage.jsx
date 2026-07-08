@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const PaymentPage = () => {
       navigate("/CoachesAvailable", { replace: true });
       return;
     }
-    axios.get(`${mihirBackend}/coach/${coachId}`)
+    axios.get(`${chessMastersBackend}/coach/${coachId}`)
       .then(response => setCoachName(response.data?.user?.UserName || "Coach"))
       .catch(() => setCoachName("Coach"));
   }, [coachId, navigate, plan]);
@@ -26,7 +26,7 @@ const PaymentPage = () => {
     setError("");
     try {
       await axios.post(
-        `${mihirBackend}/player/subscribe`,
+        `${chessMastersBackend}/player/subscribe`,
         { coachId, plan },
         { withCredentials: true }
       );

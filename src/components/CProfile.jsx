@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios'; // For API requests
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 // const sampleData = [
 //   { name: 'Game 1', elo: 400 },
@@ -38,7 +38,7 @@ const CProfile = () => {
     const fetchCoachDetails = async () => {
       const token = document.cookie.split("=")[1];
       try {
-        const response = await axios.get(`${mihirBackend}/auth/details`, {
+        const response = await axios.get(`${chessMastersBackend}/auth/details`, {
           withCredentials: true,
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -53,7 +53,7 @@ const CProfile = () => {
           setLoading(false);
   
           const playersResponse = await axios.get(
-            `${mihirBackend}/coach/subscribedPlayers/${coachId}`,
+            `${chessMastersBackend}/coach/subscribedPlayers/${coachId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
               withCredentials: true,
@@ -97,7 +97,7 @@ const CProfile = () => {
         
         // Send update request to backend
         const response = await axios.put(
-          `${mihirBackend}/coach/update-profile`,
+          `${chessMastersBackend}/coach/update-profile`,
           updateData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -169,7 +169,7 @@ const CProfile = () => {
     try {
       // Delete the coach account through our API
       const response = await axios.delete(
-        `${mihirBackend}/coach/delete-account`,
+        `${chessMastersBackend}/coach/delete-account`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true

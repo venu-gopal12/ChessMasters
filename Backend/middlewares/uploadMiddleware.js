@@ -1,7 +1,11 @@
 import multer from 'multer';
+import { config } from 'dotenv';
+import axios from 'axios';
+import FormData from 'form-data';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import ErrorHandler from './errorHandler.js';
+
+config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -35,22 +39,65 @@ const getExtension = (filename = '') => {
   return match ? match[0] : '';
 };
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => {
-    const timestamp = Date.now();
+const storage = {
+  async _handleFile(req, file, cb) {
     const resourceType = getCloudinaryResourceType(file.mimetype);
     const extension = resourceType === 'raw' ? getExtension(file.originalname) : '';
-
-    return {
+    const publicId = `${Date.now()}-${sanitizeBaseName(file.originalname)}${extension}`;
+    const uploadParams = {
       folder: getUploadFolder(file.mimetype),
-      resource_type: resourceType,
-      public_id: `${timestamp}-${sanitizeBaseName(file.originalname)}${extension}`,
-      use_filename: false,
-      unique_filename: false,
+      public_id: publicId,
+      timestamp: Math.round(Date.now() / 1000),
     };
+    const signature = cloudinary.utils.api_sign_request(
+      uploadParams,
+      process.env.CLOUDINARY_API_SECRET
+    );
+    const formData = new FormData();
+
+    Object.entries(uploadParams).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    formData.append('api_key', process.env.CLOUDINARY_API_KEY);
+    formData.append('signature', signature);
+    formData.append('file', file.stream, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+        formData,
+        {
+          headers: formData.getHeaders(),
+          maxBodyLength: Infinity,
+          maxContentLength: Infinity,
+        }
+      );
+
+      cb(null, {
+        path: response.data.secure_url,
+        size: response.data.bytes,
+        filename: response.data.public_id,
+        resource_type: response.data.resource_type,
+      });
+    } catch (error) {
+      const message = error.response?.data?.error?.message
+        || error.response?.data?.message
+        || error.message
+        || 'Cloudinary upload failed';
+      cb(new Error(`Cloudinary upload failed: ${message}`));
+    }
   },
-});
+  _removeFile(req, file, cb) {
+    cloudinary.uploader.destroy(
+      file.filename,
+      { resource_type: file.resource_type || 'image', invalidate: true },
+      cb
+    );
+  }
+};
 
 // File filter to accept only specific file types
 const fileFilter = (req, file, cb) => {
@@ -96,7 +143,7 @@ export const handleUploadErrors = (req, res, next) => {
   };
 };
 
-export const deleteCloudinaryAsset = async (publicId, resourceType = 'raw') => {
+export const deleteCloudinaryAsset = async (publicId, resourceType = 'image') => {
   if (!publicId) return;
   try {
     await cloudinary.uploader.destroy(publicId, {
@@ -106,6 +153,16 @@ export const deleteCloudinaryAsset = async (publicId, resourceType = 'raw') => {
   } catch (error) {
     console.error('Error deleting Cloudinary asset:', error);
   }
+};
+
+export const getCloudinaryDownloadUrl = (publicId, resourceType = 'raw', attachment = true) => {
+  if (!publicId) return "";
+  return cloudinary.utils.private_download_url(publicId, undefined, {
+    resource_type: resourceType,
+    type: 'upload',
+    attachment,
+    expires_at: Math.round(Date.now() / 1000) + 300,
+  });
 };
 
 export { getCloudinaryResourceType };

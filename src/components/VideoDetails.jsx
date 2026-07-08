@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const VideoDetail = () => {
   const { id } = useParams();
@@ -10,7 +10,7 @@ const VideoDetail = () => {
   useEffect(() => {
     const fetchVideo = async () => {
       try {
-        const response = await fetch(`${mihirBackend}/coach/VideoDetail/${id}`, {
+        const response = await fetch(`${chessMastersBackend}/coach/VideoDetail/${id}`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -41,7 +41,7 @@ const VideoDetail = () => {
 
   const getFileUrl = (path = '') => {
     if (/^https?:\/\//i.test(path)) return path;
-    return `${mihirBackend}/${path.replace(/\\/g, '/')}`;
+    return `${chessMastersBackend}/${path.replace(/\\/g, '/')}`;
   };
 
   const fileUrl = getFileUrl(video.filePath);

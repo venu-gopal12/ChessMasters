@@ -3,7 +3,7 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -77,7 +77,7 @@ const ViewChart = () => {
         console.log("🔍 Fetching coach content data...");
         
         // Get user details to get coach ID if not available from URL
-        const userResponse = await axios.get(`${mihirBackend}/auth/details`, { 
+        const userResponse = await axios.get(`${chessMastersBackend}/auth/details`, { 
           withCredentials: true 
         });
         
@@ -95,10 +95,10 @@ const ViewChart = () => {
         
         // Fetch videos and articles for this coach specifically
         const [videosResponse, articlesResponse] = await Promise.all([
-          axios.get(`${mihirBackend}/video/coach/${activeCoachId}`, {
+          axios.get(`${chessMastersBackend}/video/coach/${activeCoachId}`, {
             withCredentials: true
           }),
-          axios.get(`${mihirBackend}/article/coach/${activeCoachId}`, {
+          axios.get(`${chessMastersBackend}/article/coach/${activeCoachId}`, {
             withCredentials: true
           })
         ]);

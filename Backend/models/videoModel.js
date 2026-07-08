@@ -12,6 +12,8 @@ const VideoSchema = new Schema({
   title: { type: String, required: true },
   content: { type: String, required: true }, 
   filePath: { type: String, required: true }, 
+  fileOriginalName: { type: String, default: "" },
+  fileMimeType: { type: String, default: "" },
   cloudinaryPublicId: { type: String, default: "" },
   cloudinaryResourceType: { type: String, default: "video" },
   thumbnailPath: { type: String, default: "" }, 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 // Logout Button Component
 const LogoutButton = () => {
@@ -8,7 +8,7 @@ const LogoutButton = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${mihirBackend}/auth/logout`, {
+      const response = await fetch(`${chessMastersBackend}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

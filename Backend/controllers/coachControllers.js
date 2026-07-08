@@ -1,9 +1,14 @@
 // import CoachModel from "../models/CoachModel.js";
+import axios from "axios";
 import CoachDetails from "../models/CoachModel.js";
 import ArticleModel from "../models/articleModel.js"; // for default export
 import UserModel from "../models/userModel.js";
 import videoModel from "../models/videoModel.js";
-import upload, { deleteCloudinaryAsset, getCloudinaryResourceType } from "../middlewares/uploadMiddleware.js";
+import upload, {
+  deleteCloudinaryAsset,
+  getCloudinaryDownloadUrl,
+  getCloudinaryResourceType
+} from "../middlewares/uploadMiddleware.js";
 import mongoose from "mongoose";
 import Video from "../models/videoModel.js";
 import Article from "../models/articleModel.js";
@@ -11,9 +16,44 @@ import ErrorHandler, { catchAsync } from "../middlewares/errorHandler.js";
 
 const getUploadedFileData = (file) => ({
   filePath: file.path,
+  fileOriginalName: file.originalname || "",
+  fileMimeType: file.mimetype || "",
   cloudinaryPublicId: file.filename || file.public_id || "",
   cloudinaryResourceType: file.resource_type || getCloudinaryResourceType(file.mimetype)
 });
+
+const isPdfArticle = (article) => {
+  const values = [
+    article.fileMimeType,
+    article.fileOriginalName,
+    article.filePath,
+    article.cloudinaryPublicId
+  ].filter(Boolean);
+
+  return values.some(value => (
+    value === 'application/pdf' || /\.pdf($|[?#])/i.test(value)
+  ));
+};
+
+const canAccessCoachContent = async (req, content) => {
+  const user = await UserModel.findById(req.userId).select("Role subscribedCoaches");
+  if (!user) return false;
+
+  const coachId = content.coach?.toString();
+  const userId = user._id.toString();
+
+  if (user.Role === "coach") {
+    return coachId === userId;
+  }
+
+  if (user.Role === "player") {
+    return user.subscribedCoaches.some(
+      subscribedCoachId => subscribedCoachId.toString() === coachId
+    );
+  }
+
+  return false;
+};
 
 
 
@@ -122,6 +162,7 @@ export const addArticle = [
   (req, res, next) => {
     upload.single("file")(req, res, (err) => {
       if (err) {
+        console.error("Article upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
       }
       if (!req.file) {
@@ -161,6 +202,7 @@ export const addVideo = [
   (req, res, next) => {
     upload.single("file")(req, res, (err) => {
       if (err) {
+        console.error("Video upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
       }
       if (!req.file) {
@@ -235,6 +277,9 @@ export const getArticleById = async (req, res) => {
     if (!article) {
       return res.status(404).json({ message: "Article not found" });
     }
+    if (!(await canAccessCoachContent(req, article))) {
+      return res.status(403).json({ message: "You do not have access to this article" });
+    }
     res.status(200).json(article); // Return the article details
   } catch (error) {
     console.error("Error fetching article:", error);
@@ -260,6 +305,9 @@ export const getVideoById = async (req, res) => {
     const video = await videoModel.findById(req.params.id);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
+    }
+    if (!(await canAccessCoachContent(req, video))) {
+      return res.status(403).json({ message: "You do not have access to this video" });
     }
     res.status(200).json(video);
   } catch (error) {
@@ -309,8 +357,7 @@ export const getCoachContent = async (req, res) => {
 
 export const getCoachVideos = async (req, res) => {
   try {
-    // Get the coach ID from the authenticated user - using id instead of _id
-    const coachId = req.user.id;
+    const coachId = req.userId;
     
     const videos = await Video.find({ coach: coachId });
     
@@ -323,8 +370,7 @@ export const getCoachVideos = async (req, res) => {
 
 export const getCoachArticles = async (req, res) => {
   try {
-    // Get the coach ID from the authenticated user - using id instead of _id
-    const coachId = req.user.id;
+    const coachId = req.userId;
     
     const articles = await Article.find({ coach: coachId });
     
@@ -432,6 +478,7 @@ export const updateArticle = [
     // Use this approach to handle file upload
     upload.single("file")(req, res, (err) => {
       if (err) {
+        console.error("Article update upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
       }
       next();
@@ -513,6 +560,7 @@ export const updateVideo = [
   (req, res, next) => {
     upload.single("file")(req, res, (err) => {
       if (err) {
+        console.error("Video update upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
       }
       next();
@@ -665,5 +713,60 @@ export const deleteVideo = async (req, res) => {
   } catch (error) {
     console.error("Error deleting video:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const downloadArticleById = async (req, res) => {
+  try {
+    const article = await ArticleModel.findById(req.params.id);
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    if (!(await canAccessCoachContent(req, article))) {
+      return res.status(403).json({ message: "You do not have access to this article" });
+    }
+
+    if (article.cloudinaryPublicId) {
+      const downloadUrl = getCloudinaryDownloadUrl(
+        article.cloudinaryPublicId,
+        article.cloudinaryResourceType || 'raw'
+      );
+      return res.redirect(downloadUrl);
+    }
+
+    return res.redirect(article.filePath);
+  } catch (error) {
+    console.error("Error downloading article:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const viewArticlePdfById = async (req, res) => {
+  try {
+    const article = await ArticleModel.findById(req.params.id);
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    if (!(await canAccessCoachContent(req, article))) {
+      return res.status(403).json({ message: "You do not have access to this article" });
+    }
+
+    if (!isPdfArticle(article)) {
+      return res.status(400).json({ message: "Only PDF articles can be previewed" });
+    }
+
+    const fileUrl = article.cloudinaryPublicId
+      ? getCloudinaryDownloadUrl(article.cloudinaryPublicId, article.cloudinaryResourceType || 'raw', false)
+      : article.filePath;
+
+    const response = await axios.get(fileUrl, { responseType: "stream" });
+    const filename = article.fileOriginalName || `${article.title || 'article'}.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${filename.replace(/"/g, '')}"`);
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("Error viewing article PDF:", error.response?.data || error);
+    res.status(500).json({ message: "Unable to load PDF article" });
   }
 };

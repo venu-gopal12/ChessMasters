@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SubscriptionChart from './subscription.jsx';
 import Viewchart from './views.jsx';
 import EarningsChart from './earnings.jsx';
 import axios from "axios";
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const CoachDashboard = () => {
   const { coachId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [articles, setArticles] = useState([]);
   const [videos, setVideos] = useState([]);
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -29,25 +30,24 @@ const CoachDashboard = () => {
     const fetchData = async () => {
       const token = document.cookie.split("=")[1];
       try {
-        // Fetch all articles and videos first
         const [articlesResponse, videosResponse, playersResponse, revenueResponse, profileResponse] = await Promise.all([
-          axios.get(`${mihirBackend}/admin/articles`, {
+          axios.get(`${chessMastersBackend}/coach/articles`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }),
-          axios.get(`${mihirBackend}/admin/videos`,{
+          axios.get(`${chessMastersBackend}/coach/videos`,{
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }),
-          axios.get(`${mihirBackend}/coach/subscribedPlayers/${coachId}`, {
+          axios.get(`${chessMastersBackend}/coach/subscribedPlayers/${coachId}`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }),
-          axios.get(`${mihirBackend}/coach/revenue/${coachId}`, {
+          axios.get(`${chessMastersBackend}/coach/revenue/${coachId}`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }),
-          axios.get(`${mihirBackend}/coach/details`, {
+          axios.get(`${chessMastersBackend}/coach/details`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           })
@@ -71,12 +71,8 @@ const CoachDashboard = () => {
         
         console.log('playersResponse', playersResponse);
         
-        // Filter articles and videos by coach ID
-        const coachArticles = articlesResponse.data.filter(article => article.coach === coachId);
-        const coachVideos = videosResponse.data.filter(video => video.coach === coachId);
-        
-        setArticles(coachArticles || []);
-        setVideos(coachVideos || []);
+        setArticles(articlesResponse.data || []);
+        setVideos(videosResponse.data || []);
         setSubscribedPlayers(playersResponse.data.subscribers);
         setRevenue(revenueResponse.data.revenue || 0);
         
@@ -118,8 +114,8 @@ const CoachDashboard = () => {
       
       // Make sure endpoint is correct
       const endpoint = type === 'article' 
-        ? `${mihirBackend}/coach/article/${itemId}` 
-        : `${mihirBackend}/coach/video/${itemId}`;
+        ? `${chessMastersBackend}/coach/article/${itemId}` 
+        : `${chessMastersBackend}/coach/video/${itemId}`;
       
       const response = await axios.delete(
         endpoint,
@@ -367,7 +363,7 @@ const CoachDashboard = () => {
                     <li key={video._id} 
                         className="hover:bg-gray-50 p-3 rounded-lg transition duration-300 ease-in-out border border-gray-200 shadow-sm">
                       <div className="flex flex-col space-y-2">
-                        <Link to={`/Videodetail/${video._id}`} 
+                        <Link to={`/VideoDetail/${video._id}`} 
                               className="text-blue-600 hover:text-blue-800 font-medium">
                           {video.title}
                         </Link>
@@ -418,7 +414,9 @@ const CoachDashboard = () => {
                     <li key={article._id} 
                         className="hover:bg-gray-50 p-3 rounded-lg transition duration-300 ease-in-out border border-gray-200 shadow-sm">
                       <div className="flex flex-col space-y-2">
-                        <Link to={`/Articledetail/${article._id}`} 
+                        <Link
+                              to={`/ArticleDetail/${article._id}`}
+                              state={{ returnTo: `${location.pathname}${location.search}` }}
                               className="text-blue-600 hover:text-blue-800 font-medium">
                           {article.title}
                         </Link>

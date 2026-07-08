@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const Profile = () => {
   const { id } = useParams();
@@ -46,7 +46,7 @@ const Profile = () => {
       
       try {
         // Request user details
-        const response = await axios.get(`${mihirBackend}/auth/details`, {
+        const response = await axios.get(`${chessMastersBackend}/auth/details`, {
           withCredentials: true,
           // headers: { 
           //   Authorization: `Bearer ${token}`
@@ -67,7 +67,7 @@ const Profile = () => {
           if (player._id) {
             try {
               const coachesResponse = await axios.get(
-                `${mihirBackend}/player/${player._id}/subscribedCoaches`,
+                `${chessMastersBackend}/player/${player._id}/subscribedCoaches`,
                 {
                   // headers: { Authorization: `Bearer ${token}` },
                   withCredentials: true,
@@ -129,7 +129,7 @@ const Profile = () => {
         
         // Send update request to backend
         const response = await axios.put(
-          `${mihirBackend}/player/update-profile`,
+          `${chessMastersBackend}/player/update-profile`,
           updateData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -189,7 +189,7 @@ const Profile = () => {
 
     try {
       const response = await axios.post(
-        `${mihirBackend}/player/unsubscribe`,
+        `${chessMastersBackend}/player/unsubscribe`,
         { coachId: coachUserId },  // Send the user ID of the coach
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -270,7 +270,7 @@ const Profile = () => {
       
       // Then delete the account
       const response = await axios.delete(
-        `${mihirBackend}/player/delete-account`,
+        `${chessMastersBackend}/player/delete-account`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true

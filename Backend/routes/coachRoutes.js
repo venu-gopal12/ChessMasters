@@ -9,6 +9,8 @@ import {
   completeProfile,
   getArticles,
   getArticleById,
+  downloadArticleById,
+  viewArticlePdfById,
   getVideos,
   getVideoById,
   getCoachRevenue,
@@ -589,7 +591,7 @@ router.post("/addVideo", isCoach, addVideo);
 router.put("/completeProfile", isCoach, completeProfile);
 /**
  * @openapi
- * /api/coach/Articledetail/{id}:
+ * /api/coach/ArticleDetail/{id}:
  *   get:
  *     tags:
  *       - Coach Content
@@ -641,10 +643,12 @@ router.put("/completeProfile", isCoach, completeProfile);
  *       500:
  *         description: Server error
  */
-router.get("/Articledetail/:id", getArticleById);
+router.get("/ArticleDetail/:id", authMiddleware, getArticleById);
+router.get("/article/:id/download", authMiddleware, downloadArticleById);
+router.get("/article/:id/view", authMiddleware, viewArticlePdfById);
 /**
  * @openapi
- * /api/coach/Videodetail/{id}:
+ * /api/coach/VideoDetail/{id}:
  *   get:
  *     tags:
  *       - Coach Content
@@ -699,7 +703,7 @@ router.get("/Articledetail/:id", getArticleById);
  *       500:
  *         description: Server error
  */
-router.get("/Videodetail/:id", getVideoById);
+router.get("/VideoDetail/:id", authMiddleware, getVideoById);
 /**
  * @openapi
  * /api/coach/revenue/{coachId}:
@@ -1227,8 +1231,6 @@ export default router;
 // router.post("/addArticle", isCoach, addArticle);
 // router.post("/addVideo", isCoach, addVideo);
 // router.put("/completeProfile", isCoach, completeProfile);
-// router.get("/Articledetail/:id", getArticleById);
-// router.get("/Videodetail/:id", getVideoById);
 // router.get("/revenue/:coachId", isCoach, getCoachRevenue);
 // router.put("/update-profile", isCoach, updateCoachProfile);
 // router.delete("/delete-account", isCoach, deleteCoachAccount);

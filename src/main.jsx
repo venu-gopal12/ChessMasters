@@ -17,6 +17,7 @@ const FileUpload = lazy(() => import("./components/fileupload.jsx"));
 const CoachesAvaialble = lazy(() => import("./components/coachesavailable.jsx"));
 const AddCoachForm = lazy(() => import("./components/AddDetails.jsx"));
 const ArticleDetail = lazy(() => import("./components/ArticleDetails.jsx"));
+const ArticlePdfViewer = lazy(() => import("./components/ArticlePdfViewer.jsx"));
 const ChessBoard = lazy(() => import("./components/Chessboard.jsx"));
 const PricingPlans = lazy(() => import("./components/PricingPlans.jsx"));
 const PaymentPage = lazy(() => import("./components/PaymentPage.jsx"));
@@ -94,6 +95,7 @@ const router = createBrowserRouter([
         { path: '/Coachdash/:id', element: withLoading(<Coachdash />) },
         { path: '/Upload', element: withLoading(<FileUpload />) },
         { path: '/ArticleDetail/:id', element: withLoading(<ArticleDetail />) },
+        { path: '/article-view/:id', element: withLoading(<ArticlePdfViewer />) },
         { path: '/VideoDetail/:id', element: withLoading(<VideoDetail />) },
         { path: '/ChessBoard', element: withLoading(<ChessBoard />) },
         { path: '/pricingplans', element: withLoading(<PricingPlans />) },

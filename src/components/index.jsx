@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link, useLocation } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import NavbarPlay from "./navbarplay.jsx";
 import axios from "axios";
@@ -8,7 +8,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { toast } from 'react-toastify';
 import { Book } from 'lucide-react';
 import { motion } from "framer-motion";
-import { mihirBackend } from "../../config.js";
+import { chessMastersBackend } from "../../config.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -27,6 +27,7 @@ const chartOptions = {
 
 function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [details, setDetails] = useState(null);
   const [articles, setArticles] = useState(null);
   const [videos, setVideos] = useState([]);
@@ -106,14 +107,14 @@ function HomePage() {
 
   useEffect(() => {
     axios
-      .get(`${mihirBackend}/auth/details`, { withCredentials: true })
+      .get(`${chessMastersBackend}/auth/details`, { withCredentials: true })
       .then((resp) => {
         setDetails(resp.data);
         setIsPlayer(resp.data.Role === "player");
   
         if (resp.data.Role === "player" || resp.data.Role === "coach"){
           axios
-            .get(`${mihirBackend}/game/mygames`, { withCredentials: true })
+            .get(`${chessMastersBackend}/game/mygames`, { withCredentials: true })
             .then((resp) => {
               setGames(Array.isArray(resp.data.games) ? resp.data.games : []);
             })
@@ -124,7 +125,7 @@ function HomePage() {
           }
           if (resp.data.Role === "player"){
           axios
-            .get(`${mihirBackend}/player/subscribed-articles`, { withCredentials: true })
+            .get(`${chessMastersBackend}/player/subscribed-articles`, { withCredentials: true })
             .then((resp) => {
               console.log('articles data', resp.data);
               setArticles(resp.data);
@@ -135,7 +136,7 @@ function HomePage() {
             });
   
           axios
-            .get(`${mihirBackend}/player/subscribed-videos`, { withCredentials: true })
+            .get(`${chessMastersBackend}/player/subscribed-videos`, { withCredentials: true })
             .then((resp) => {
               console.log('videos data', resp.data);
               setVideos(resp.data);
@@ -148,7 +149,7 @@ function HomePage() {
           setArticles([]);
           setVideos([]);
           axios
-            .get(`${mihirBackend}/admin/getvideos`, { withCredentials: true })
+            .get(`${chessMastersBackend}/admin/getvideos`, { withCredentials: true })
             .then((resp) => {
               setVideos(resp.data);
             })
@@ -165,7 +166,7 @@ function HomePage() {
   
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${mihirBackend}/player/${details._id}/game-stats`, { withCredentials: true });
+      const response = await axios.get(`${chessMastersBackend}/player/${details._id}/game-stats`, { withCredentials: true });
       console.log('stats data', response.data);
       setStats(response.data);
     } catch (error) {
@@ -193,7 +194,7 @@ function HomePage() {
   const recordVideoView = async (videoId) => {
     try {
       const response = await axios.post(
-        `${mihirBackend}/video/${videoId}/view`,
+        `${chessMastersBackend}/video/${videoId}/view`,
         {},
         { withCredentials: true }
       );
@@ -211,7 +212,7 @@ function HomePage() {
   const recordArticleView = async (articleId) => {
     try {
       const response = await axios.post(
-        `${mihirBackend}/article/${articleId}/view`,
+        `${chessMastersBackend}/article/${articleId}/view`,
         {},
         { withCredentials: true }
       );
@@ -469,7 +470,7 @@ function HomePage() {
                           scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
                 {videos.map((video) => (
                   <Link key={video._id} 
-                        to={`/Videodetail/${video._id}`} 
+                        to={`/VideoDetail/${video._id}`} 
                         onClick={() => {
                           // Record video view when clicked
                           recordVideoView(video._id);
@@ -501,7 +502,8 @@ function HomePage() {
                           scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
                 {articles.map((article) => (
                   <Link key={article._id} 
-                        to={`/Articledetail/${article._id}`}
+                        to={`/ArticleDetail/${article._id}`}
+                        state={{ returnTo: `${location.pathname}${location.search}` }}
                         onClick={() => {
                           // Record article view when clicked
                           recordArticleView(article._id);

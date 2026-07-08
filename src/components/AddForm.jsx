@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { mihirBackend } from "../../config";
+import { chessMastersBackend } from "../../config";
 
 export const AddForm = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({

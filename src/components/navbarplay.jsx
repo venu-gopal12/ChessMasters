@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearUser } from '../redux/userSlice';
-import { mihirBackend } from '../../config.js';
+import { chessMastersBackend } from '../../config.js';
 
 const LogoutButton = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const LogoutButton = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${mihirBackend}/auth/logout`, {
+      const response = await fetch(`${chessMastersBackend}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
