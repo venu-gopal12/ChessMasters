@@ -1,7 +1,7 @@
 import readline from 'readline';
-import bcrypt from 'bcryptjs';
-import AdminModel from './models/AdminModel.js'; // Import the Admin model
+import AdminModel from './models/adminModel.js';
 import mongoose from 'mongoose';
+import { mongodbUri } from './config.js';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -11,7 +11,7 @@ const rl = readline.createInterface({
 const askQuestion = (query) => {
     return new Promise((resolve) => rl.question(query, resolve));
 };
-await mongoose.connect("mongodb://0.0.0.0:27017/chessApp").then(() => {
+await mongoose.connect(mongodbUri).then(() => {
     console.log("Connected to MongoDB");
 }).catch((error) => {
     console.error("Error connecting to MongoDB:", error);
@@ -23,12 +23,10 @@ const adminSignup = async () => {
         const email = await askQuestion("Enter admin email: ");
         const password = await askQuestion("Enter admin password: ");
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         const admin = new AdminModel({
-            name,
+            UserName: name,
             email,
-            password: hashedPassword
+            password
         });
 
         await admin.save();

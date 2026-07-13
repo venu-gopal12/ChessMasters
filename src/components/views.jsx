@@ -190,7 +190,7 @@ const ViewChart = () => {
             size: window.innerWidth < 640 ? 10 : 14,
             weight: 'bold',
           },
-          color: '#4B5563',
+          color: '#D7E0DC',
         },
       },
       title: {
@@ -200,7 +200,7 @@ const ViewChart = () => {
           size: window.innerWidth < 640 ? 14 : 20,
           weight: 'bold',
         },
-        color: '#1F2937',
+        color: '#F8FAFC',
         padding: {
           top: window.innerWidth < 640 ? 5 : 10,
           bottom: window.innerWidth < 640 ? 15 : 30
@@ -214,7 +214,7 @@ const ViewChart = () => {
           display: window.innerWidth > 640,
         },
         ticks: {
-          color: '#4B5563',
+          color: '#D7E0DC',
           font: {
             size: window.innerWidth < 640 ? 8 : 12,
           },
@@ -226,7 +226,7 @@ const ViewChart = () => {
           color: 'rgba(209, 213, 219, 0.5)',
         },
         ticks: {
-          color: '#4B5563',
+          color: '#D7E0DC',
           font: {
             size: window.innerWidth < 640 ? 8 : 12,
           },
@@ -238,15 +238,15 @@ const ViewChart = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8 flex items-center justify-center">
-        <div className="text-xl font-semibold text-gray-700">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8 flex items-center justify-center">
+        <div className="text-xl font-semibold text-brand-muted">Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8 flex items-center justify-center">
         <div className="text-xl font-semibold text-red-600">{error}</div>
       </div>
     );
@@ -255,10 +255,10 @@ const ViewChart = () => {
   const hasData = Object.keys(viewData).length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg lg:shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-4 sm:py-6 md:py-8 px-2 sm:px-4 md:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg lg:shadow-xl overflow-hidden border border-brand-accent/30">
         <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-brand-ink mb-3 sm:mb-4 md:mb-6">
             Views Analysis Dashboard
           </h1>
           
@@ -267,7 +267,7 @@ const ViewChart = () => {
               <div className="mb-3 sm:mb-4 md:mb-6">
                 <label 
                   htmlFor="year" 
-                  className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2"
+                  className="block text-xs sm:text-sm font-medium text-brand-muted mb-1 sm:mb-2"
                 >
                   Select Year:
                 </label>
@@ -277,8 +277,8 @@ const ViewChart = () => {
                   onChange={(e) => setSelectedYear(e.target.value)}
                   className="block w-full pl-2 sm:pl-3 pr-8 sm:pr-10 py-1.5 sm:py-2 
                     text-sm sm:text-base border-gray-300 rounded-md shadow-sm 
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
-                    bg-white transition-all duration-200"
+                    focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent 
+                    bg-white text-gray-800 transition-all duration-200"
                 >
                   {availableYears.map(year => (
                     <option key={year} value={year}>{year}</option>
@@ -290,15 +290,15 @@ const ViewChart = () => {
                 <Line data={getChartData(selectedYear)} options={options} />
               </div>
               
-              <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-600">
+              <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-brand-muted">
                 <p className="hidden sm:block text-center">* Hover over data points to see detailed information</p>
                 <p className="sm:hidden text-center">* Tap on data points to see detailed information</p>
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-10">
-              <p className="text-lg font-medium text-gray-700 mb-4">No view data available yet.</p>
-              <p className="text-sm text-gray-500">Views will appear here once players start viewing your content.</p>
+              <p className="text-lg font-medium text-brand-muted mb-4">No view data available yet.</p>
+              <p className="text-sm text-brand-muted">Views will appear here once players start viewing your content.</p>
             </div>
           )}
         </div>
@@ -308,3 +308,10 @@ const ViewChart = () => {
 };
 
 export default ViewChart;
+
+
+
+
+
+
+

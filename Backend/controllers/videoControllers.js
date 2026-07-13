@@ -1,4 +1,5 @@
 import Video from "../models/videoModel.js";
+import { canAccessCoachContentByCoachId } from "../utils/contentAccess.js";
 
 export const recordVideoView = async (req, res) => {
   try {
@@ -31,6 +32,10 @@ export const recordVideoView = async (req, res) => {
 export const getVideosByCoach = async (req, res) => {
   try {
     const { coachId } = req.params;
+    if (!(await canAccessCoachContentByCoachId(req, coachId))) {
+      return res.status(403).json({ message: "You do not have access to these videos" });
+    }
+
     const videos = await Video.find({ coach: coachId });
     return res.status(200).json(videos);
   } catch (error) {

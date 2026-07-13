@@ -96,7 +96,7 @@ router.post("/:id/view", authMiddleware, recordVideoView);
  *       500:
  *         description: Server error
  */
-router.get("/coach/:coachId", getVideosByCoach);
+router.get("/coach/:coachId", authMiddleware, getVideosByCoach);
 
 export default router;
 

@@ -1,4 +1,5 @@
 import Article from "../models/articleModel.js";
+import { canAccessCoachContentByCoachId } from "../utils/contentAccess.js";
 
 export const recordArticleView = async (req, res) => {
   try {
@@ -31,6 +32,10 @@ export const recordArticleView = async (req, res) => {
 export const getArticlesByCoach = async (req, res) => {
   try {
     const { coachId } = req.params;
+    if (!(await canAccessCoachContentByCoachId(req, coachId))) {
+      return res.status(403).json({ message: "You do not have access to these articles" });
+    }
+
     const articles = await Article.find({ coach: coachId });
     return res.status(200).json(articles);
   } catch (error) {

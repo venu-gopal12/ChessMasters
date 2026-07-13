@@ -15,7 +15,7 @@ export const AddForm = ({ onClose, onSubmit }) => {
   });
 
   const inputClasses =
-    "w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base bg-[#1A1A2E] text-[#E4EfE9] border border-[#29011C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FBB03B] transition-all duration-300";
+    "w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base bg-white text-gray-800 border border-brand-accent/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent transition-all duration-300";
 
   const isAlphanumeric = (str) => /^[a-zA-Z0-9]+$/.test(str);
   const isValidPassword = (pwd) => pwd.length >= 6;
@@ -67,9 +67,9 @@ export const AddForm = ({ onClose, onSubmit }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-[#16213E] shadow-lg rounded-xl p-4 sm:p-5 md:p-6 w-full max-w-md mx-auto"
+        className="bg-brand-surface shadow-lg rounded-xl p-4 sm:p-5 md:p-6 w-full max-w-md mx-auto border border-brand-accent/30"
       >
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#E4EfE9] mb-4">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-brand-ink mb-4">
           Add New User
         </h2>
 
@@ -182,7 +182,7 @@ export const AddForm = ({ onClose, onSubmit }) => {
             <motion.button
               type="button"
               onClick={onClose}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-gray-500 text-[#E4EfE9] font-semibold rounded-lg hover:bg-gray-600 transition-all duration-300"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -190,7 +190,7 @@ export const AddForm = ({ onClose, onSubmit }) => {
             </motion.button>
             <motion.button
               type="submit"
-              className="px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-[#FBB03B] text-[#010332] font-semibold rounded-lg hover:bg-[#FCEE21] transition-all duration-300"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-brand-action text-white font-semibold rounded-lg hover:bg-brand-actionHover transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -202,3 +202,7 @@ export const AddForm = ({ onClose, onSubmit }) => {
     </div>
   );
 };
+
+
+
+

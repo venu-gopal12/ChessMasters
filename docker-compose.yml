@@ -23,6 +23,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_BACKEND: /api
+        VITE_TURN_URLS: ${VITE_TURN_URLS:-}
+        VITE_TURN_USERNAME: ${VITE_TURN_USERNAME:-}
+        VITE_TURN_CREDENTIAL: ${VITE_TURN_CREDENTIAL:-}
     environment:
       - VITE_BACKEND=/api
     ports:

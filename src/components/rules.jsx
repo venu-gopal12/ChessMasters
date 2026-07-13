@@ -72,11 +72,11 @@ const Rules = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4 sm:p-6 lg:p-8 overflow-hidden"
+      className="min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt to-black text-white p-4 sm:p-6 lg:p-8 overflow-hidden"
     >
       <motion.button
         onClick={handleBack}
-        className="fixed top-6 left-6 flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 
+        className="fixed top-6 left-6 flex items-center gap-2 bg-gradient-to-r from-brand-action to-brand-accentHover 
                    py-2 px-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-white font-medium"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -96,12 +96,12 @@ const Rules = () => {
           className="text-center mb-12"
         >
           <motion.h1 
-            className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 mb-4"
+            className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-ink via-brand-muted to-brand-accent mb-4"
             whileHover={{ scale: 1.02 }}
           >
             Chess Game Rules
           </motion.h1>
-          <p className="text-blue-200 text-lg max-w-3xl mx-auto">
+          <p className="text-brand-muted text-lg max-w-3xl mx-auto">
             Understand the gameplay mechanics and special considerations before starting a match
           </p>
         </motion.div>
@@ -130,11 +130,11 @@ const Rules = () => {
         {/* Piece Movement */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-blue-500/30 shadow-lg"
+          className="bg-gradient-to-r from-brand-surfaceAlt/80 to-brand-surface/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-brand-accent/30 shadow-lg"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Puzzle className="text-blue-300" size={24} />
-            <h2 className="text-2xl font-bold text-blue-300">Piece Movement</h2>
+            <Puzzle className="text-brand-accent" size={24} />
+            <h2 className="text-2xl font-bold text-brand-accent">Piece Movement</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <motion.div 
@@ -142,8 +142,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♔</span>
-                <h3 className="font-bold text-purple-300">King</h3>
+                <span className="text-brand-accent text-2xl">♔</span>
+                <h3 className="font-bold text-brand-accent">King</h3>
               </div>
               <p className="text-sm text-white/80">Moves one square in any direction.</p>
             </motion.div>
@@ -153,8 +153,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♕</span>
-                <h3 className="font-bold text-purple-300">Queen</h3>
+                <span className="text-brand-accent text-2xl">♕</span>
+                <h3 className="font-bold text-brand-accent">Queen</h3>
               </div>
               <p className="text-sm text-white/80">Moves any number of squares in any direction.</p>
             </motion.div>
@@ -164,8 +164,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♖</span>
-                <h3 className="font-bold text-purple-300">Rook</h3>
+                <span className="text-brand-accent text-2xl">♖</span>
+                <h3 className="font-bold text-brand-accent">Rook</h3>
               </div>
               <p className="text-sm text-white/80">Moves any number of squares vertically or horizontally.</p>
             </motion.div>
@@ -175,8 +175,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♗</span>
-                <h3 className="font-bold text-purple-300">Bishop</h3>
+                <span className="text-brand-accent text-2xl">♗</span>
+                <h3 className="font-bold text-brand-accent">Bishop</h3>
               </div>
               <p className="text-sm text-white/80">Moves any number of squares diagonally.</p>
             </motion.div>
@@ -186,8 +186,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♘</span>
-                <h3 className="font-bold text-purple-300">Knight</h3>
+                <span className="text-brand-accent text-2xl">♘</span>
+                <h3 className="font-bold text-brand-accent">Knight</h3>
               </div>
               <p className="text-sm text-white/80">Moves in an 'L' shape (two squares in one direction, then one square perpendicular).</p>
             </motion.div>
@@ -197,8 +197,8 @@ const Rules = () => {
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-purple-300 text-2xl">♙</span>
-                <h3 className="font-bold text-purple-300">Pawn</h3>
+                <span className="text-brand-accent text-2xl">♙</span>
+                <h3 className="font-bold text-brand-accent">Pawn</h3>
               </div>
               <p className="text-sm text-white/80">Moves forward one square; two squares from its starting position. Captures diagonally.</p>
             </motion.div>
@@ -208,7 +208,7 @@ const Rules = () => {
         {/* Special Rules */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-indigo-500/30 shadow-lg"
+          className="bg-gradient-to-r from-brand-surfaceAlt/80 to-brand-surface/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-brand-accent/30 shadow-lg"
         >
           <div className="flex items-center gap-3 mb-4">
             <Shuffle className="text-indigo-300" size={24} />
@@ -218,7 +218,7 @@ const Rules = () => {
           <div className="space-y-6">
             {/* Castling */}
             <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-              <h3 className="font-bold text-purple-300 text-lg mb-2">Castling</h3>
+              <h3 className="font-bold text-brand-accent text-lg mb-2">Castling</h3>
               <p className="text-white/80 mb-2">
                 A special move where the king and rook move simultaneously.
               </p>
@@ -232,7 +232,7 @@ const Rules = () => {
             
             {/* Pawn Promotion */}
             <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-              <h3 className="font-bold text-purple-300 text-lg mb-2">Pawn Promotion</h3>
+              <h3 className="font-bold text-brand-accent text-lg mb-2">Pawn Promotion</h3>
               <div className="flex items-center gap-2">
                 <span className="text-white/70 text-lg">♙</span>
                 <ArrowRight className="text-white/50" size={14} />
@@ -248,11 +248,11 @@ const Rules = () => {
         {/* Draw Conditions */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-blue-500/30 shadow-lg"
+          className="bg-gradient-to-r from-brand-surfaceAlt/80 to-brand-surface/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-brand-accent/30 shadow-lg"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Scale className="text-cyan-300" size={24} />
-            <h2 className="text-2xl font-bold text-cyan-300">Draw Conditions (No ELO Change)</h2>
+            <Scale className="text-brand-accent" size={24} />
+            <h2 className="text-2xl font-bold text-brand-accent">Draw Conditions (No ELO Change)</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -260,7 +260,7 @@ const Rules = () => {
               className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10"
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
-              <h3 className="font-bold text-blue-200 mb-2">Insufficient Material</h3>
+              <h3 className="font-bold text-brand-muted mb-2">Insufficient Material</h3>
               <p className="text-sm text-white/80">
                 When neither player has enough pieces to deliver checkmate (e.g., King vs King).
               </p>
@@ -270,7 +270,7 @@ const Rules = () => {
               className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10"
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
-              <h3 className="font-bold text-blue-200 mb-2">Threefold Repetition</h3>
+              <h3 className="font-bold text-brand-muted mb-2">Threefold Repetition</h3>
               <p className="text-sm text-white/80">
                 The same position appears three times with the same player to move.
               </p>
@@ -280,7 +280,7 @@ const Rules = () => {
               className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10"
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
             >
-              <h3 className="font-bold text-blue-200 mb-2">Stalemate</h3>
+              <h3 className="font-bold text-brand-muted mb-2">Stalemate</h3>
               <p className="text-sm text-white/80">
                 The player to move has no legal moves, and the king is not in check.
               </p>
@@ -293,8 +293,8 @@ const Rules = () => {
             whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.1)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Handshake className="text-blue-200" size={20} />
-              <h3 className="font-bold text-blue-200">Draw by Agreement</h3>
+              <Handshake className="text-brand-muted" size={20} />
+              <h3 className="font-bold text-brand-muted">Draw by Agreement</h3>
             </div>
             <p className="text-white/80">
               A 'Draw' button is available. If both players agree, the game ends in a draw with no ELO change.
@@ -305,21 +305,21 @@ const Rules = () => {
         {/* Game Results */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-purple-500/30 shadow-lg"
+          className="bg-gradient-to-r from-brand-surfaceAlt/80 to-brand-surface/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-brand-accent/30 shadow-lg"
         >
           <div className="flex items-center gap-3 mb-4">
-            <Trophy className="text-purple-300" size={24} />
-            <h2 className="text-2xl font-bold text-purple-300">Game Results</h2>
+            <Trophy className="text-brand-accent" size={24} />
+            <h2 className="text-2xl font-bold text-brand-accent">Game Results</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <motion.div 
-              className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 p-4 rounded-xl border border-emerald-500/30 backdrop-blur-sm"
+              className="bg-gradient-to-r from-brand-success/15 to-brand-surfaceAlt/80 p-4 rounded-xl border border-brand-success/30 backdrop-blur-sm"
               whileHover={{ scale: 1.02 }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-emerald-300 text-2xl">♔</span>
-                <h3 className="font-bold text-emerald-300">Checkmate</h3>
+                <span className="text-brand-success text-2xl">♔</span>
+                <h3 className="font-bold text-brand-success">Checkmate</h3>
               </div>
               <p className="text-white/80 mb-2">
                 The player delivering checkmate wins.
@@ -327,7 +327,7 @@ const Rules = () => {
               <div className="flex items-center gap-2 bg-white/10 p-2 rounded-lg mt-2">
                 <Award className="text-yellow-300" size={18} />
                 <p className="text-white font-medium">
-                  Winner gains <span className="text-green-300">+100 ELO</span>
+                  Winner gains <span className="text-brand-success">+100 ELO</span>
                 </p>
               </div>
               <div className="flex items-center gap-2 bg-white/10 p-2 rounded-lg mt-2">
@@ -361,7 +361,7 @@ const Rules = () => {
         {/* Caution Banner */}
         <motion.div
           variants={itemVariants}
-          className="bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-sm rounded-2xl p-6 mb-12 border-2 border-red-500/50 shadow-xl"
+          className="bg-gradient-to-r from-brand-danger/20 to-brand-surfaceAlt/80 backdrop-blur-sm rounded-2xl p-6 mb-12 border-2 border-red-500/50 shadow-xl"
           whileHover={{ scale: 1.01 }}
         >
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
@@ -379,7 +379,7 @@ const Rules = () => {
         >
           <motion.button
             onClick={handleBack}
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 
+            className="flex items-center gap-2 bg-gradient-to-r from-brand-action to-brand-accentHover 
                       py-2 px-6 rounded-full shadow-lg text-white font-medium"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -394,3 +394,7 @@ const Rules = () => {
 };
 
 export default Rules; 
+
+
+
+

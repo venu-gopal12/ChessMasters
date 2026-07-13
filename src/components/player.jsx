@@ -22,7 +22,7 @@ function Player() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 md:p-8 lg:p-12 
+    <div className="bg-gradient-to-br from-brand-page to-brand-pageAlt p-4 sm:p-6 md:p-8 lg:p-12 
                     min-h-screen flex justify-center items-center">
       <div 
         ref={playerRef} 
@@ -33,7 +33,7 @@ function Player() {
       >
         <div className="w-full md:w-1/2 text-center md:text-left">
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl 
-                       text-gray-800 leading-relaxed 
+                       text-brand-muted leading-relaxed 
                        max-w-xl mx-auto md:mx-0">
             Play against players of all skill level and improve your game. 
             Get detailed analysis after each game to know your strengths 
@@ -56,3 +56,7 @@ function Player() {
 }
 
 export default Player;
+
+
+
+

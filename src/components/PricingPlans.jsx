@@ -43,18 +43,18 @@ const PricingPlans = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-green-500 to-black min-h-screen 
+    <div className="bg-gradient-to-br from-brand-page to-brand-pageAlt min-h-screen 
                     flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12">
-      <div className="bg-white rounded-lg sm:rounded-xl lg:rounded-2xl 
+      <div className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl 
                     shadow-xl sm:shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 
                     max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-4xl w-full 
-                    animate-fade-in-down">
+                    animate-fade-in-down border border-brand-accent/30">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center 
-                     text-gray-800 mb-4 sm:mb-6 md:mb-8 animate-slide-in-left">
+                     text-brand-ink mb-4 sm:mb-6 md:mb-8 animate-slide-in-left">
           {loading ? "Loading..." : `Choose your plan for ${coachName}`}
         </h2>
         
-        <div className="h-1 w-20 sm:w-24 md:w-32 bg-green-500 mx-auto 
+        <div className="h-1 w-20 sm:w-24 md:w-32 bg-brand-accent mx-auto 
                       mb-6 sm:mb-8 md:mb-12 rounded-full animate-expand">
         </div>
         
@@ -77,13 +77,13 @@ const PricingPlans = () => {
 };
 
 const PlanCard = ({ title, price, duration, description, buttonLabel, isRecommended, onSelect, onBack }) => (
-  <div className={`bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 
+  <div className={`bg-brand-surface rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 
                    shadow-lg sm:shadow-xl transition-all duration-300 
                    hover:shadow-2xl transform hover:-translate-y-2 
                    animate-fade-in-up relative w-full max-w-sm 
-                   ${isRecommended ? "border-2 sm:border-4 border-green-500" : ""}`}>
+                   ${isRecommended ? "border-2 sm:border-4 border-brand-accent" : ""}`}>
     {isRecommended && (
-      <span className="bg-green-500 text-white py-1 px-3 sm:px-4 
+      <span className="bg-brand-action text-white py-1 px-3 sm:px-4 
                      rounded-full text-xs sm:text-sm font-semibold 
                      absolute -top-3 left-1/3 transform -translate-x-1/2 
                      animate-bounce whitespace-nowrap">
@@ -92,28 +92,28 @@ const PlanCard = ({ title, price, duration, description, buttonLabel, isRecommen
     )}
     
     <div>
-      <h3 className="text-xl sm:text-2xl font-bold text-gray-800 
+      <h3 className="text-xl sm:text-2xl font-bold text-brand-ink 
                    mb-2 sm:mb-4 animate-slide-in-right">
         {title}
       </h3>
-      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 
+      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-ink 
                   mb-1 sm:mb-2 animate-zoom-in">
         {price}
       </p>
-      <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6">
+      <p className="text-sm sm:text-base text-brand-muted mb-4 sm:mb-6">
         {duration}
       </p>
-      <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+      <p className="text-sm sm:text-base text-brand-muted mb-6 sm:mb-8">
         {description}
       </p>
     </div>
     
     <div className="space-y-3 sm:space-y-4">
       <button
-        className="w-full bg-green-600 text-white py-2 sm:py-3 
+        className="w-full bg-brand-action text-white py-2 sm:py-3 
                  px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base
-                 transition-colors duration-300 hover:bg-green-700 
-                 focus:outline-none focus:ring-2 focus:ring-green-500 
+                 transition-colors duration-300 hover:bg-brand-actionHover 
+                 focus:outline-none focus:ring-2 focus:ring-brand-accent 
                  focus:ring-opacity-50 animate-pulse"
         onClick={onSelect}
       >
@@ -121,9 +121,9 @@ const PlanCard = ({ title, price, duration, description, buttonLabel, isRecommen
       </button>
       
       <button
-        className="w-full bg-gray-200 text-gray-700 py-2 sm:py-3 
+        className="w-full bg-brand-surfaceAlt text-brand-muted py-2 sm:py-3 
                  px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base
-                 transition-colors duration-300 hover:bg-gray-300 
+                 transition-colors duration-300 hover:bg-brand-actionHover 
                  focus:outline-none focus:ring-2 focus:ring-gray-400 
                  focus:ring-opacity-50"
         onClick={onBack}
@@ -135,3 +135,8 @@ const PlanCard = ({ title, price, duration, description, buttonLabel, isRecommen
 );
 
 export default PricingPlans;
+
+
+
+
+

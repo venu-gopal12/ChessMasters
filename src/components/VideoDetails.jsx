@@ -30,11 +30,11 @@ const VideoDetail = () => {
   }, [id]);
 
   if (!video) return (
-    <div className="flex justify-center items-center h-screen bg-gradient-to-r from-green-400 to-green-600">
+    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
       <div className="animate-pulse flex space-x-2 sm:space-x-4">
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
       </div>
     </div>
   );
@@ -47,7 +47,7 @@ const VideoDetail = () => {
   const fileUrl = getFileUrl(video.filePath);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 py-6 sm:py-8 md:py-12 px-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-6 sm:py-8 md:py-12 px-3 sm:px-6 lg:px-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ const VideoDetail = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center mb-4 sm:mb-6 md:mb-8 text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-black"
+          className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center mb-4 sm:mb-6 md:mb-8 text-brand-ink"
         >
           {video.title}
         </motion.h1>
@@ -67,10 +67,10 @@ const VideoDetail = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="bg-white shadow-lg sm:shadow-xl md:shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden transform hover:scale-105 transition duration-300"
+          className="bg-brand-surface shadow-lg sm:shadow-xl md:shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden transform hover:scale-105 transition duration-300 border border-brand-accent/30"
         >
           <div className="p-4 sm:p-6 md:p-8">
-            <p className="text-base sm:text-lg md:text-xl text-gray-800 leading-relaxed mb-4 sm:mb-6 md:mb-8">
+            <p className="text-base sm:text-lg md:text-xl text-brand-ink leading-relaxed mb-4 sm:mb-6 md:mb-8">
               {video.content}
             </p>
 
@@ -87,7 +87,7 @@ const VideoDetail = () => {
                 href={fileUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-green-600 to-black hover:from-green-700 hover:to-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300"
+                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-full shadow-sm text-white bg-brand-action hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent transition-all duration-300"
               >
                 <svg 
                   className="w-4 h-4 sm:w-5 sm:h-5 mr-2" 
@@ -116,3 +116,8 @@ const VideoDetail = () => {
 };
 
 export default VideoDetail;
+
+
+
+
+

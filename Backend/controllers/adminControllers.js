@@ -10,6 +10,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jwtSecretKey } from '../config.js';
 import AdminRevenueModel from '../models/adminRevenueModel.js';
+import AuditLog from '../models/auditLogModel.js';
+import Report from '../models/reportModel.js';
+import Notification from '../models/notificationModel.js';
+import { createAuditLog } from '../services/auditService.js';
 
 const recalculateUserGameStats = async (userId) => {
     const games = await GameModel.find({
@@ -63,6 +67,12 @@ export const deletePlayer = async (req, res) => {
         
         // Delete the player
         await UserModel.findByIdAndDelete(playerId);
+        await createAuditLog(req, {
+            action: "delete_player",
+            targetType: "player",
+            targetId: playerId,
+            metadata: { userName: player.UserName, email: player.Email }
+        });
         
         res.status(200).json({ message: "Player deleted successfully" });
     } catch (error) {
@@ -137,6 +147,17 @@ export const deleteCoach = async (req, res) => {
         // Delete the coach user
         await UserModel.findByIdAndDelete(userId);
         console.log(`Deleted coach user with ID: ${userId}`);
+        await createAuditLog(req, {
+            action: "delete_coach",
+            targetType: "coach",
+            targetId: userId,
+            metadata: {
+                coachDetailsId: coachId,
+                articlesDeleted: deletedArticles.deletedCount,
+                videosDeleted: deletedVideos.deletedCount,
+                subscribersRemoved: subscribersCount
+            }
+        });
         
         res.status(200).json({ 
             message: "Coach and all related content deleted successfully",
@@ -155,7 +176,14 @@ export const deleteCoach = async (req, res) => {
 export const deleteArticle = async (req, res) => {
     try {
         const { articleId } = req.params;
-        await ArticleModel.findByIdAndDelete(articleId);
+        const article = await ArticleModel.findByIdAndDelete(articleId);
+        if (!article) return res.status(404).json({ message: "Article not found" });
+        await createAuditLog(req, {
+            action: "delete_article",
+            targetType: "article",
+            targetId: articleId,
+            metadata: { title: article.title, coach: article.coach }
+        });
         res.status(200).json({ message: "Article deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting article", error });
@@ -164,7 +192,14 @@ export const deleteArticle = async (req, res) => {
 export const deleteVideo = async (req, res) => {
     try {
         const { videoId } = req.params;
-        await VideoModel.findByIdAndDelete(videoId);
+        const video = await VideoModel.findByIdAndDelete(videoId);
+        if (!video) return res.status(404).json({ message: "Video not found" });
+        await createAuditLog(req, {
+            action: "delete_video",
+            targetType: "video",
+            targetId: videoId,
+            metadata: { title: video.title, coach: video.coach }
+        });
         res.status(200).json({ message: "video deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting video", error });
@@ -182,6 +217,16 @@ export const deleteGame = async (req, res) => {
             recalculateUserGameStats(deletedGame.playerWhite),
             recalculateUserGameStats(deletedGame.playerBlack)
         ]);
+        await createAuditLog(req, {
+            action: "delete_game",
+            targetType: "game",
+            targetId: gameId,
+            metadata: {
+                playerWhite: deletedGame.playerWhite,
+                playerBlack: deletedGame.playerBlack,
+                winner: deletedGame.winner
+            }
+        });
         res.status(200).json({ message: "Game deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting game", error });
@@ -203,6 +248,11 @@ export const deleteAllGames = async (req, res) => {
                 }
             }
         );
+        await createAuditLog(req, {
+            action: "delete_all_games",
+            targetType: "game",
+            metadata: { count: result.deletedCount }
+        });
         res.status(200).json({ 
             message: "All games deleted and player statistics reset successfully",
             count: result.deletedCount 
@@ -286,7 +336,15 @@ export const adminLogin = async (req, res) => {
             expiresIn: '1h',
         });
 
-        res.status(200).json({ token });
+        res.cookie("authorization", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
+            maxAge: 60 * 60 * 1000
+        });
+
+        res.status(200).json({ token, userId: admin._id, role: "admin" });
     } catch (error) {
         console.error("Admin login error:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -390,6 +448,12 @@ export const updateRevenue = async (req, res) => {
         }
         
         console.log(`Admin revenue updated: +$${amountValue}. New total: $${revenueRecord.totalRevenue}`);
+        await createAuditLog(req, {
+            action: "update_revenue",
+            targetType: "revenue",
+            targetId: revenueRecord._id,
+            metadata: { amount: amountValue, description, totalRevenue: revenueRecord.totalRevenue }
+        });
         
         res.status(200).json({ 
             message: "Admin revenue updated successfully", 
@@ -398,6 +462,127 @@ export const updateRevenue = async (req, res) => {
     } catch (error) {
         console.error("Error updating admin revenue:", error);
         res.status(500).json({ message: "Error updating admin revenue", error: error.message });
+    }
+};
+
+export const banUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { reason = "" } = req.body;
+
+        const user = await UserModel.findByIdAndUpdate(
+            userId,
+            {
+                $set: {
+                    Status: "Banned",
+                    banReason: reason,
+                    bannedAt: new Date(),
+                    bannedBy: req.user.id
+                }
+            },
+            { new: true }
+        ).select("-Password");
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        await createAuditLog(req, {
+            action: "ban_user",
+            targetType: user.Role,
+            targetId: userId,
+            metadata: { reason }
+        });
+
+        await Notification.create({
+            user: userId,
+            type: "system",
+            title: "Account banned",
+            message: reason || "Your account has been banned by an administrator.",
+        });
+
+        res.status(200).json({ message: "User banned", user });
+    } catch (error) {
+        res.status(500).json({ message: "Error banning user", error: error.message });
+    }
+};
+
+export const unbanUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await UserModel.findByIdAndUpdate(
+            userId,
+            { $set: { Status: "Active" }, $unset: { banReason: "", bannedAt: "", bannedBy: "" } },
+            { new: true }
+        ).select("-Password");
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        await createAuditLog(req, {
+            action: "unban_user",
+            targetType: user.Role,
+            targetId: userId,
+        });
+
+        await Notification.create({
+            user: userId,
+            type: "system",
+            title: "Account restored",
+            message: "Your account access has been restored.",
+        });
+
+        res.status(200).json({ message: "User unbanned", user });
+    } catch (error) {
+        res.status(500).json({ message: "Error unbanning user", error: error.message });
+    }
+};
+
+export const getAuditLogs = async (req, res) => {
+    try {
+        const logs = await AuditLog.find()
+            .sort({ createdAt: -1 })
+            .limit(200)
+            .lean();
+        res.status(200).json(logs);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching audit logs", error: error.message });
+    }
+};
+
+export const getReports = async (req, res) => {
+    try {
+        const reports = await Report.find()
+            .populate("reporter", "UserName Email Role")
+            .populate("targetUser", "UserName Email Role Status")
+            .sort({ createdAt: -1 })
+            .limit(200)
+            .lean();
+        res.status(200).json(reports);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching reports", error: error.message });
+    }
+};
+
+export const updateReportStatus = async (req, res) => {
+    try {
+        const { reportId } = req.params;
+        const { status } = req.body;
+        const report = await Report.findByIdAndUpdate(
+            reportId,
+            { $set: { status, reviewedBy: req.user.id, reviewedAt: new Date() } },
+            { new: true }
+        );
+
+        if (!report) return res.status(404).json({ message: "Report not found" });
+
+        await createAuditLog(req, {
+            action: "update_report_status",
+            targetType: "report",
+            targetId: reportId,
+            metadata: { status }
+        });
+
+        res.status(200).json({ message: "Report updated", report });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating report", error: error.message });
     }
 };
 

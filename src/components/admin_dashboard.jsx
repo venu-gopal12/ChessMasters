@@ -258,10 +258,10 @@ const Dashboard = () => {
       
       const numValue = Number(value);
       if (numValue >= 2000) return 'bg-purple-600 text-white';
-      if (numValue >= 1800) return 'bg-blue-600 text-white';
-      if (numValue >= 1600) return 'bg-green-600 text-white';
+      if (numValue >= 1800) return 'bg-brand-action text-white';
+      if (numValue >= 1600) return 'bg-brand-success text-white';
       if (numValue >= 1400) return 'bg-yellow-500 text-gray-900';
-      if (numValue >= 1200) return 'bg-orange-500 text-white';
+      if (numValue >= 1200) return 'bg-brand-surfaceAlt text-white';
       return 'bg-red-500 text-white';
     };
 
@@ -277,13 +277,11 @@ const Dashboard = () => {
         border border-white/20 min-h-[300px] hover:shadow-2xl 
         transition-all duration-500 transform hover:scale-[1.01]`}>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl md:text-2xl font-bold 
-            bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text 
-            text-transparent tracking-wide">{title}</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-brand-ink tracking-wide">{title}</h3>
             
           {/* Display legend for Players and Coaches */}
           {(title === 'Players' || title === 'Coaches') && (
-            <div className="text-xs md:text-sm text-gray-600 bg-white/70 px-3 py-1.5 rounded-full shadow-sm">
+            <div className="text-xs md:text-sm text-brand-muted bg-brand-surfaceAlt px-3 py-1.5 rounded-full shadow-sm border border-brand-accent/30">
               {title === 'Players' ? 'Username - ELO Rating' : 'Username - Coach Rating & ELO'}
             </div>
           )}
@@ -312,7 +310,7 @@ const Dashboard = () => {
         </div>
         
         {/* Display count of filtered items */}
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-brand-muted mb-4">
           Showing {filteredItems.length} of {data.length} {title.toLowerCase()}
         </p>
         
@@ -339,13 +337,13 @@ const Dashboard = () => {
               return (
                 <div key={item._id}
                   className="flex flex-col md:flex-row justify-between items-start 
-                    md:items-center p-5 bg-white/50 hover:bg-white/70 rounded-xl 
-                    border border-white/40 transition-all duration-300 
+                    md:items-center p-5 bg-brand-surfaceAlt/80 hover:bg-brand-surfaceAlt rounded-xl 
+                    border border-brand-accent/25 hover:border-brand-accent/50 transition-all duration-300 
                     hover:shadow-lg group backdrop-blur-sm"
                 >
                   {title === 'Players' ? (
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-                      <span className="text-base md:text-lg font-semibold text-gray-800">
+                      <span className="text-base md:text-lg font-semibold text-brand-ink">
                         {username}
                       </span>
                       <div className={`${getBadgeColor(elo)} px-3 py-1 rounded-full text-xs md:text-sm font-medium shadow-sm`}>
@@ -354,7 +352,7 @@ const Dashboard = () => {
                     </div>
                   ) : title === 'Coaches' ? (
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 flex-wrap">
-                      <span className="text-base md:text-lg font-semibold text-gray-800">
+                      <span className="text-base md:text-lg font-semibold text-brand-ink">
                         {username}
                       </span>
                       <div className="flex flex-wrap gap-2">
@@ -367,7 +365,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                   ) : (
-                    <span className="text-sm md:text-base text-gray-800 font-medium truncate max-w-full md:max-w-[70%]">
+                    <span className="text-sm md:text-base text-brand-ink font-medium truncate max-w-full md:max-w-[70%]">
                       {item[itemKey]}
                     </span>
                   )}
@@ -384,7 +382,7 @@ const Dashboard = () => {
                     {(title === 'Players' || title === 'Coaches') && (
                       <button
                         onClick={() => handleViewStats(item._id, title)}
-                        className="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white 
+                        className="px-5 py-2 bg-brand-action hover:bg-brand-actionHover text-white 
                           rounded-lg transition-all duration-300 text-sm md:text-base
                           shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
                       >
@@ -396,7 +394,7 @@ const Dashboard = () => {
               );
             })
           ) : (
-            <div className="text-center py-8 text-gray-500 bg-white/30 rounded-xl backdrop-blur-sm">
+            <div className="text-center py-8 text-brand-muted bg-brand-surfaceAlt/70 rounded-xl backdrop-blur-sm border border-brand-accent/25">
               No {title.toLowerCase()} found matching your search.
             </div>
           )}
@@ -563,12 +561,12 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 
-      to-pink-100 p-4 md:p-8 animate-gradient-x">
+    <main className="min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt 
+      to-black p-4 md:p-8 animate-gradient-x">
       <AdminNav />
       <div className="mb-8 md:mb-16 pt-6 md:pt-8">
         <h3 className="text-2xl md:text-4xl font-bold bg-gradient-to-r 
-          from-purple-600 via-indigo-600 to-blue-600 bg-clip-text 
+          from-brand-ink via-brand-muted to-brand-accent bg-clip-text 
           text-transparent tracking-tight hover:tracking-wide 
           transition-all duration-300">
           OVERVIEW
@@ -587,48 +585,48 @@ const Dashboard = () => {
               title="Users"
               count={`${players.length} Players, ${coaches.length} Coaches`}
               icon={BsPeopleFill}
-              gradient="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700"
+              gradient="bg-gradient-to-br from-brand-surfaceAlt via-brand-surface to-brand-action"
               onClick={() => handleStatClick('Users')}
             />
             <StatCard
               title="Games Played"
               count={`${gamesCount} Games`}
               icon={BsFillBarChartLineFill}
-              gradient="bg-gradient-to-br from-pink-600 via-rose-600 to-red-700"
+              gradient="bg-gradient-to-br from-brand-surfaceAlt via-brand-surface to-brand-danger"
               onClick={() => handleStatClick('Games Played')}
             />
             <StatCard
               title="Content"
               count={`${articles.length} Articles, ${videos.length} Videos`}
               icon={BsFillFileEarmarkTextFill}
-              gradient="bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700"
+              gradient="bg-gradient-to-br from-brand-success via-brand-page to-brand-surfaceAlt"
               onClick={() => handleStatClick('Content')}
             />
             <StatCard
               title="Subscriptions"
               count={subscriptions}
               icon={BsCashStack}
-              gradient="bg-gradient-to-br from-amber-500 via-orange-600 to-red-600"
+              gradient="bg-gradient-to-br from-brand-surfaceAlt via-brand-surface to-brand-danger"
               onClick={() => handleStatClick('Subscriptions')}
             />
              <StatCard
               title="Add"
               icon={BsFilePlus}
-              gradient="bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700"
+              gradient="bg-gradient-to-br from-brand-success via-brand-page to-brand-surfaceAlt"
               onClick={handleAddClick}
             />
             <StatCard
               title="Revenue"
               count={`$${totalRevenue.toFixed(2)}`}
               icon={BsCurrencyDollar}
-              gradient="bg-gradient-to-br from-amber-500 via-orange-600 to-red-600"
+              gradient="bg-gradient-to-br from-brand-surfaceAlt via-brand-surface to-brand-danger"
             />
           </div>
-          <div className="mt-8 bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-xl shadow-md">
+          <div className="mt-8 bg-gradient-to-r from-brand-surface to-brand-surfaceAlt p-4 rounded-xl shadow-md">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-800">Danger Zone</h3>
-                <p className="text-gray-600">Permanently delete all games from the database.</p>
+                <h3 className="text-xl font-bold text-brand-ink">Danger Zone</h3>
+                <p className="text-brand-muted">Permanently delete all games from the database.</p>
               </div>
               <button
                 onClick={() => setShowDeleteConfirmation(true)}
@@ -649,21 +647,21 @@ const Dashboard = () => {
               title="Articles"
               data={articles}
               onDelete={(id) => handleDelete(id, 'article')}
-              gradient="bg-gradient-to-br from-fuchsia-50/90 to-pink-50/90"
+              gradient="bg-gradient-to-br from-brand-surface/95 to-brand-surfaceAlt/95"
               handleViewStats={handleViewStats}
             />
             <ContentSection
               title="Videos"
               data={videos}
               onDelete={(id) => handleDelete(id, 'video')}
-              gradient="bg-gradient-to-br from-violet-50/90 to-purple-50/90"
+              gradient="bg-gradient-to-br from-brand-surface/95 to-brand-surfaceAlt/95"
               handleViewStats={handleViewStats}
             />
             <ContentSection
               title="Players"
               data={players}
               onDelete={(id) => handleDelete(id, 'player')}
-              gradient="bg-gradient-to-br from-blue-50/90 to-indigo-50/90"
+              gradient="bg-gradient-to-br from-brand-surface/95 to-brand-surfaceAlt/95"
               itemKey="UserName"
               handleViewStats={handleViewStats}
             />
@@ -671,14 +669,14 @@ const Dashboard = () => {
               title="Coaches"
               data={coaches}
               onDelete={(id) => handleDelete(id, 'coach')}
-              gradient="bg-gradient-to-br from-emerald-50/90 to-teal-50/90"
+              gradient="bg-gradient-to-br from-brand-surface/95 to-brand-surfaceAlt/95"
               itemKey="UserName"
               handleViewStats={handleViewStats}
             />
           </div>
         </>
       ) : (
-        <div className="bg-white rounded-xl shadow-xl p-6 md:p-8">
+        <div className="bg-brand-surface rounded-xl shadow-xl text-brand-ink p-6 md:p-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl md:text-3xl font-bold">{expandedStat} Over the Last 7 Days</h3>
             <button
@@ -702,14 +700,14 @@ const Dashboard = () => {
               <YAxis allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" activeDot={{ r: 8 }} />
+              <Line type="monotone" dataKey="count" stroke="#3B82F6" activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
       {showStats.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-brand-surface rounded-lg p-6 w-full max-w-md text-brand-ink">
             <h2 className="text-xl font-bold mb-4">{showStats.title === 'Players' ? 'Player Stats' : 'Coach Stats'}</h2>
             <p>Total Games Played: {stats.totalGamesPlayed}</p>
             <p>Games Won: {stats.gamesWon}</p>
@@ -727,14 +725,14 @@ const Dashboard = () => {
       )}
       {showDeleteConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl transform transition-all">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Delete All Games</h2>
+          <div className="bg-brand-surface rounded-lg p-6 w-full max-w-md shadow-2xl text-brand-ink transform transition-all">
+            <h2 className="text-xl font-bold mb-4 text-brand-ink">Delete All Games</h2>
             {deleteAllStatus.isDeleting ? (
               <div className="text-center py-4">
-                <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-blue-500" role="status">
+                <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-brand-accent" role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
-                <p className="mt-2 text-gray-600">{deleteAllStatus.message}</p>
+                <p className="mt-2 text-brand-muted">{deleteAllStatus.message}</p>
               </div>
             ) : deleteAllStatus.message ? (
               <div className={`text-center py-4 ${deleteAllStatus.message.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>
@@ -742,13 +740,13 @@ const Dashboard = () => {
               </div>
             ) : (
               <>
-                <p className="mb-4 text-gray-600">
+                <p className="mb-4 text-brand-muted">
                   Are you sure you want to delete ALL games? This action cannot be undone.
                 </p>
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setShowDeleteConfirmation(false)}
-                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-all"
+                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-brand-ink rounded-lg transition-all"
                   >
                     Cancel
                   </button>
@@ -769,3 +767,9 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
+
+
+
+

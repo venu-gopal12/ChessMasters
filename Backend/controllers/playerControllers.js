@@ -3,7 +3,7 @@ import CoachDetails from "../models/CoachModel.js";
 import Article from "../models/articleModel.js";
 import Video from "../models/videoModel.js";
 import AdminRevenueModel from "../models/adminRevenueModel.js";
-import Game from "../models/gameModel.js";
+import bcrypt from "bcrypt";
 
 export const getPlayerDetails = async (req, res) => {
   try {
@@ -23,12 +23,24 @@ export const getPlayerDetails = async (req, res) => {
 export const getPlayerDetailsById = async (req, res) => {
   try {
     const playerId = req.params.playerId || req.params.id;
-    const player = await UserModel.findById(playerId);
+    const player = await UserModel.findById(
+      playerId,
+      "UserName Role elo gamesWon gamesLost gamesDraw createdAt"
+    ).lean();
 
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
-    res.status(200).json(player);
+    res.status(200).json({
+      _id: player._id,
+      UserName: player.UserName,
+      Role: player.Role,
+      elo: player.elo,
+      gamesWon: player.gamesWon,
+      gamesLost: player.gamesLost,
+      gamesDraw: player.gamesDraw,
+      createdAt: player.createdAt,
+    });
   } catch (error) {
     console.error("Error fetching player details by ID:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -191,38 +203,26 @@ export const getUsernameById = async (req, res) => {
 export const getPlayerGameStats = async (req, res) => {
   try {
     const { playerId } = req.params; // Extract playerId from route parameters
+    const requesterId = req.user?.id?.toString();
+    const requesterRole = req.user?.role;
 
-    const player = await UserModel.findById(playerId, "_id");
+    if (requesterRole !== "admin" && requesterId !== playerId.toString()) {
+      return res.status(403).json({ message: "You cannot view this player's private stats" });
+    }
+
+    const player = await UserModel.findById(
+      playerId,
+      "gamesWon gamesLost gamesDraw elo eloHistory"
+    ).lean();
 
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const games = await Game.find({
-      $or: [{ playerWhite: playerId }, { playerBlack: playerId }]
-    }).select("playerWhite playerBlack winner").lean();
-
-    let gamesWon = 0;
-    let gamesLost = 0;
-    let gamesDraw = 0;
-    games.forEach(game => {
-      if (game.winner === "Draw") {
-        gamesDraw += 1;
-        return;
-      }
-      const playedWhite = game.playerWhite.toString() === playerId.toString();
-      const won = (playedWhite && game.winner === "White")
-        || (!playedWhite && game.winner === "Black");
-      if (won) gamesWon += 1;
-      else gamesLost += 1;
-    });
-
-    const totalGamesPlayed = games.length;
-    const elo = 1200 + (gamesWon * 100) - (gamesLost * 100);
-
-    await UserModel.findByIdAndUpdate(playerId, {
-      $set: { gamesWon, gamesLost, gamesDraw, elo }
-    });
+    const gamesWon = player.gamesWon || 0;
+    const gamesLost = player.gamesLost || 0;
+    const gamesDraw = player.gamesDraw || 0;
+    const totalGamesPlayed = gamesWon + gamesLost + gamesDraw;
 
     // Return the game stats
     res.status(200).json({
@@ -230,7 +230,8 @@ export const getPlayerGameStats = async (req, res) => {
       gamesWon,
       gamesLost,
       gamesDraw,
-      elo,
+      elo: player.elo || 1200,
+      eloHistory: player.eloHistory || [],
     });
   } catch (error) {
     console.error("Error fetching player game stats:", error);
@@ -344,7 +345,7 @@ export const unsubscribeFromCoach = async (req, res) => {
 export const updatePlayerProfile = async (req, res) => {
   try {
     const userId = req.userId;
-    const { UserName, Email, Password } = req.body;
+    const { UserName, Email } = req.body;
     
     // Find the player by ID
     const player = await UserModel.findById(userId);
@@ -357,12 +358,6 @@ export const updatePlayerProfile = async (req, res) => {
     if (UserName) player.UserName = UserName;
     if (Email) player.Email = Email;
     
-    // Only update password if it's not the placeholder
-    if (Password && Password !== '********') {
-      // Password will be hashed by the pre-save hook in the model
-      player.Password = Password;
-    }
-    
     await player.save();
     
     // Return updated player without password
@@ -370,6 +365,45 @@ export const updatePlayerProfile = async (req, res) => {
     res.status(200).json(updatedPlayer);
   } catch (error) {
     console.error("Error updating player profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changePlayerPassword = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "Current password, new password, and confirm password are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New password and confirm password do not match" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const player = await UserModel.findById(userId);
+
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const passwordMatches = await bcrypt.compare(currentPassword, player.Password);
+
+    if (!passwordMatches) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    player.Password = newPassword;
+    await player.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Error changing player password:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

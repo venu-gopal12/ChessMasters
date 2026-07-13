@@ -2,7 +2,10 @@
   import { BrowserRouter , Routes, Route} from "react-router-dom";
   import Navbar from "./components/Navbar";
   import Coachdash from "./components/Coachdash";
-  import PricingPlans from "./components/PricingPlans";
+  import Notifications from "./components/Notifications";
+  import RequestPasswordReset from "./components/RequestPasswordReset";
+  import ResetPassword from "./components/ResetPassword";
+  import VerifyEmail from "./components/VerifyEmail";
   import './App.css';
 
   function App() {
@@ -12,6 +15,10 @@
           <Routes>
             {/* Default route to Coachdash */}
             <Route path="/" element={<Coachdash />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/forgot-password" element={<RequestPasswordReset />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             
           </Routes>
     </BrowserRouter>

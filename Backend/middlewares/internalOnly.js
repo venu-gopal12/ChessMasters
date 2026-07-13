@@ -1,6 +1,6 @@
-import crypto from "crypto";
+import { internalApiKey } from "../config.js";
 
-export const internalApiKey = crypto.randomBytes(32).toString("hex");
+export { internalApiKey };
 
 export const internalOnly = (req, res, next) => {
   if (req.get("x-internal-api-key") !== internalApiKey) {

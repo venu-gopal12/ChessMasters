@@ -17,7 +17,7 @@ export const isPlayer = async (req, res, next) => {
     const user = await UserModel.findById(decoded.userId);
     // console.log('user', user);
     // console.log('user.Role', user.Role);
-    if (!user || user.Role !== "player") {
+    if (!user || user.Role !== "player" || user.Status !== "Active") {
       return res.status(403).json({ message: "Unauthorized access." });
     }
 

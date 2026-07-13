@@ -7,11 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#6B4DE6',
-        secondary: '#9C27B0',
-        background: '#E6E6FA',
-        accent: '#B8C0FF',
-        surface: '#F0E6FF',
+        brand: {
+          page: '#055826',
+          pageAlt: '#16051F',
+          surface: '#1B1B2E',
+          surfaceAlt: '#14213D',
+          ink: '#F8FAFC',
+          muted: '#D7E0DC',
+          accent: '#2563EB',
+          accentHover: '#1D4ED8',
+          accentSoft: '#14213D',
+          action: '#3B82F6',
+          actionHover: '#2563EB',
+          danger: '#DC2626',
+          success: '#22C55E',
+        },
       },
       keyframes: {
         'gradient-x': {

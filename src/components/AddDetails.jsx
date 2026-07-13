@@ -152,7 +152,7 @@ const AddCoachForm = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-lg sm:text-xl text-purple-600">
+            <div className="min-h-screen flex items-center justify-center text-lg sm:text-xl text-brand-ink bg-gradient-to-br from-brand-page to-brand-pageAlt">
                 Loading profile...
             </div>
         );
@@ -160,17 +160,17 @@ const AddCoachForm = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-lg sm:text-xl text-red-500">
+            <div className="min-h-screen flex items-center justify-center text-lg sm:text-xl text-brand-danger bg-gradient-to-br from-brand-page to-brand-pageAlt">
                 {error}
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 py-6 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-6 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-3xl mx-auto bg-brand-surface rounded-lg shadow-xl overflow-hidden border border-brand-accent/30">
                 <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8">
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-center text-purple-600 mb-6">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-center text-brand-ink mb-6">
                         Coach Profile
                     </h2>
                     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -178,7 +178,7 @@ const AddCoachForm = () => {
                             <div key={field} className="flex flex-col space-y-1">
                                 <label
                                     htmlFor={field}
-                                    className="block text-xs sm:text-sm font-medium text-purple-600"
+                                    className="block text-xs sm:text-sm font-medium text-brand-ink"
                                 >
                                     {field.replace(/([A-Z])/g, " $1")}
                                 </label>
@@ -191,7 +191,7 @@ const AddCoachForm = () => {
                                         value={formData[field]}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full bg-blue-50 border border-purple-300 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                        className="mt-1 block w-full bg-white border border-brand-accent/40 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-all duration-200"
                                     />
                                 ) : field === "aboutMe" || field === "teachingMethodology" ? (
                                     <textarea
@@ -201,7 +201,7 @@ const AddCoachForm = () => {
                                         value={formData[field]}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full bg-blue-50 border border-purple-300 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-y"
+                                        className="mt-1 block w-full bg-white border border-brand-accent/40 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-all duration-200 resize-y"
                                     />
                                 ) : (
                                     <input
@@ -211,7 +211,7 @@ const AddCoachForm = () => {
                                         value={formData[field]}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full bg-blue-50 border border-purple-300 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                        className="mt-1 block w-full bg-white border border-brand-accent/40 rounded-md shadow-sm py-1.5 sm:py-2 px-2 sm:px-3 text-sm sm:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-all duration-200"
                                     />
                                 )}
                                 {errors[field] && (
@@ -222,12 +222,12 @@ const AddCoachForm = () => {
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
                             <button
                                 type="submit"
-                                className="w-full sm:w-2/3 flex justify-center py-2 sm:py-3 px-4 border border-transparent rounded-md shadow-sm text-sm sm:text-base font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
+                                className="w-full sm:w-2/3 flex justify-center py-2 sm:py-3 px-4 border border-transparent rounded-md shadow-sm text-sm sm:text-base font-medium text-white bg-brand-action hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent transition-all duration-200"
                             >
                                 Submit
                             </button>
                             <Link to={`/coach/${coachId}/CoachDashboard`} className="w-full sm:w-1/3">
-                                <button className="w-full text-indigo-600 hover:text-indigo-500 bg-indigo-100 px-4 py-2 sm:py-3 rounded-md transition-all duration-200 hover:bg-indigo-200 text-sm sm:text-base">
+                                <button className="w-full text-brand-ink bg-brand-accentSoft px-4 py-2 sm:py-3 rounded-md transition-all duration-200 hover:bg-brand-actionHover text-sm sm:text-base">
                                     Back to Dashboard
                                 </button>
                             </Link>
@@ -240,5 +240,9 @@ const AddCoachForm = () => {
 };
 
 export default AddCoachForm;
+
+
+
+
 
 

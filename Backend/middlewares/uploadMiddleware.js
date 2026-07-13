@@ -39,6 +39,17 @@ const getExtension = (filename = '') => {
   return match ? match[0] : '';
 };
 
+const extensionMatchesMimeType = (filename = '', mimetype = '') => {
+  const extension = getExtension(filename);
+  if (mimetype === 'application/pdf') return extension === '.pdf';
+  if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return extension === '.docx';
+  if (mimetype === 'video/mp4') return extension === '.mp4';
+  if (mimetype === 'video/quicktime') return ['.mov', '.qt'].includes(extension);
+  if (mimetype === 'video/x-msvideo' || mimetype === 'video/avi') return extension === '.avi';
+  if (mimetype.startsWith('image/')) return ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(extension);
+  return false;
+};
+
 const storage = {
   async _handleFile(req, file, cb) {
     const resourceType = getCloudinaryResourceType(file.mimetype);
@@ -107,6 +118,10 @@ const fileFilter = (req, file, cb) => {
     file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || // Allow DOCX files
     file.mimetype.startsWith('image/') // Allow image files
   ) {
+    if (!extensionMatchesMimeType(file.originalname, file.mimetype)) {
+      cb(new ErrorHandler('File extension does not match the uploaded file type.', 400), false);
+      return;
+    }
     cb(null, true);
   } else {
     cb(new ErrorHandler('Only images, PDF, DOCX, and video files are allowed!', 400), false);

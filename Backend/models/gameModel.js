@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const GameSchema = new Schema({
+  gameSessionId: {
+    type: String,
+    trim: true,
+    index: true,
+    unique: true,
+    sparse: true,
+  },
   playerWhite: {
     type: Schema.Types.ObjectId,
     ref: "UserModel",

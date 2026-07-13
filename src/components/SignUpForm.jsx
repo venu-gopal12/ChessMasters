@@ -99,7 +99,7 @@ function SignupForm({ onSignupSuccess }) {
       });
   };
 
-  const inputClasses = "w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base bg-[#1A1A2E] text-[#E4EfE9] border border-[#29011C] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FBB03B] transition-all duration-300";
+  const inputClasses = "w-full p-2 sm:p-2.5 md:p-3 text-sm sm:text-base bg-white text-gray-800 border border-brand-accent/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent transition-all duration-300";
 
   return (
     <>
@@ -108,7 +108,7 @@ function SignupForm({ onSignupSuccess }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-[#16213E] shadow-lg rounded-xl p-4 sm:p-5 md:p-6 w-full max-w-md mx-auto"
+        className="bg-brand-surface shadow-lg rounded-xl p-4 sm:p-5 md:p-6 w-full max-w-md mx-auto border border-brand-accent/30"
       >
         <div className="flex justify-center items-center space-x-2 sm:space-x-4 mb-3 sm:mb-4 md:mb-6">
           <motion.img
@@ -118,7 +118,7 @@ function SignupForm({ onSignupSuccess }) {
             src="/pngtree-chess-rook-front-view-png-image_7505306-2460555070.png"
             alt="rook"
           />
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[#E4EfE9]">Sign Up</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-brand-ink">Sign Up</h1>
           <motion.img
             animate={{ rotate: -360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -196,7 +196,7 @@ function SignupForm({ onSignupSuccess }) {
           />
           <motion.button
             type="submit"
-            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-[#FBB03B] text-[#010332] font-semibold rounded-lg hover:bg-[#FCEE21] transition-all duration-300 mt-2 sm:mt-3"
+            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base bg-brand-action text-white font-semibold rounded-lg hover:bg-brand-actionHover transition-all duration-300 mt-2 sm:mt-3"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -209,4 +209,8 @@ function SignupForm({ onSignupSuccess }) {
 }
 
 export default SignupForm;
+
+
+
+
 

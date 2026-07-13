@@ -3,41 +3,64 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            Backend/package-lock.json
         
-    - name: Install backend dependencies
-      working-directory: ./Backend
-      run: npm ci
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install backend dependencies
+        working-directory: ./Backend
+        run: npm ci
       
-    - name: Run backend tests
-      working-directory: ./Backend
-      run: npm test
+      - name: Run backend tests
+        working-directory: ./Backend
+        run: npm test
       
-    - name: Log test completion
-      run: |
-        echo "All tests completed"
-        echo "Branch: ${{ github.ref }}"
-        echo "Commit: ${{ github.sha }}"
+      - name: Log verification completion
+        run: |
+          echo "Frontend tests, frontend build, and backend tests completed"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
         
-    - name: Log files changed
-      run: |
-        echo "Files changed in this commit:"
-        git diff-tree --no-commit-id --name-only -r ${{ github.sha }}
-        
-    - name: Deployment
-      run: |
-        echo "Starting deployment process..."
-        # Add your actual deployment commands here
-        echo "Deployment complete!"
+      - name: Log files changed
+        if: github.event_name == 'push'
+        run: |
+          echo "Files changed in this commit:"
+          git diff-tree --no-commit-id --name-only -r ${{ github.sha }}
+
+  deployment-note:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deployment handled by hosting providers
+        run: |
+          echo "CI checks passed."
+          echo "Frontend deployment is handled by Vercel."
+          echo "Backend deployment is handled by Render."
+          echo "Add provider-specific deploy hooks here if you want GitHub Actions to trigger deployments directly."

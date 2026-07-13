@@ -42,12 +42,12 @@ const LogoutButton = () => {
 // Navbar Component
 const AdminNav = () => {
   return (
-    <nav className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 
+    <nav className="bg-gradient-to-r from-brand-surface to-brand-surfaceAlt px-4 sm:px-6 lg:px-8 py-3 sm:py-4 
                     shadow-lg backdrop-blur-sm backdrop-filter">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold 
-                       bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent">
+                       bg-gradient-to-r from-white to-brand-muted bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
         </div>
@@ -66,3 +66,7 @@ const AdminNav = () => {
 };
 
 export default AdminNav;
+
+
+
+

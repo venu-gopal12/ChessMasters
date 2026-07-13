@@ -15,14 +15,14 @@ const ArticleUpdate = () => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Fetch article data
   useEffect(() => {
     const fetchArticle = async () => {
-      const token = document.cookie.split("=")[1];
       try {
         const response = await axios.get(`${chessMastersBackend}/coach/ArticleDetail/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
         });
         
@@ -82,9 +82,8 @@ const ArticleUpdate = () => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
-
-    const token = document.cookie.split("=")[1];
-    
+    setIsSubmitting(true);
+    setUploadProgress(0);
     // Create form data for file upload
     const updateData = new FormData();
     updateData.append('title', formData.title);
@@ -105,10 +104,14 @@ const ArticleUpdate = () => {
         updateData,
         {
           headers: { 
-            Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           },
-          withCredentials: true
+          withCredentials: true,
+          onUploadProgress: (event) => {
+            if (event.total) {
+              setUploadProgress(Math.round((event.loaded * 100) / event.total));
+            }
+          }
         }
       );
 
@@ -122,6 +125,8 @@ const ArticleUpdate = () => {
     } catch (error) {
       console.error('Error updating article:', error.response?.data || error);
       setError(error.response?.data?.message || 'Failed to update article. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -131,16 +136,16 @@ const ArticleUpdate = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-50 to-indigo-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-500"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-brand-ink"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto bg-brand-surface rounded-xl shadow-lg overflow-hidden border border-brand-accent/30">
+        <div className="bg-brand-action px-6 py-4">
           <h1 className="text-2xl font-bold text-white">Update Article</h1>
         </div>
         
@@ -158,7 +163,7 @@ const ArticleUpdate = () => {
           )}
           
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-brand-ink mb-2">
               Title
             </label>
             <input
@@ -168,12 +173,12 @@ const ArticleUpdate = () => {
               value={formData.title}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-brand-accent/40 rounded-md shadow-sm focus:outline-none focus:ring-brand-accent focus:border-brand-accent bg-white text-gray-800"
             />
           </div>
           
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="content" className="block text-sm font-medium text-brand-ink mb-2">
               Content
             </label>
             <textarea
@@ -183,12 +188,12 @@ const ArticleUpdate = () => {
               onChange={handleChange}
               required
               rows={8}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-brand-accent/40 rounded-md shadow-sm focus:outline-none focus:ring-brand-accent focus:border-brand-accent bg-white text-gray-800"
             />
           </div>
           
           <div>
-            <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="file" className="block text-sm font-medium text-brand-ink mb-2">
               Update File (Optional)
             </label>
             <input
@@ -197,29 +202,44 @@ const ArticleUpdate = () => {
               name="file"
               accept=".pdf,.docx"
               onChange={handleFileChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={isSubmitting}
+              className="mt-1 block w-full px-3 py-2 border border-brand-accent/40 rounded-md shadow-sm focus:outline-none focus:ring-brand-accent focus:border-brand-accent bg-white text-gray-800"
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-brand-muted">
               Current file: {article.filePath.split(/[\/\\]/).pop()}
             </p>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-brand-muted">
               Only PDF or DOCX files up to 10MB are accepted
             </p>
           </div>
+          
+          {isSubmitting && (
+            <div className="space-y-2">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-brand-surfaceAlt">
+                <div
+                  className="h-full bg-brand-action transition-all"
+                  style={{ width: `${uploadProgress || 10}%` }}
+                />
+              </div>
+              <p className="text-sm text-brand-muted">Uploading... {uploadProgress}%</p>
+            </div>
+          )}
           
           <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={handleCancel}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-action hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent"
             >
-              Update Article
+              {isSubmitting ? 'Updating...' : 'Update Article'}
             </button>
           </div>
         </form>
@@ -229,3 +249,9 @@ const ArticleUpdate = () => {
 };
 
 export default ArticleUpdate; 
+
+
+
+
+
+

@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import { jwtSecretKey } from "../config.js";
+import UserModel from "../models/userModel.js";
 
-export const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     const cookieToken = req.cookies ? req.cookies.authorization : null;
@@ -35,6 +36,13 @@ export const authMiddleware = (req, res, next) => {
       // Make sure we're consistent with the field names
       const userId = decoded.userId || decoded.id; 
       
+      if (decoded.role !== "admin") {
+        const user = await UserModel.findById(userId).select("Status");
+        if (!user || user.Status !== "Active") {
+          return res.status(403).json({ message: "Account is not active." });
+        }
+      }
+
       // Attach user object
       req.user = { 
         id: userId, 

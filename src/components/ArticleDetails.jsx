@@ -41,11 +41,11 @@ const ArticleDetail = () => {
   }, [id]);
 
   if (!article) return (
-    <div className="flex justify-center items-center h-screen bg-gradient-to-r from-green-400 to-green-600">
+    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
       <div className="animate-pulse flex space-x-2 sm:space-x-4">
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
-        <div className="rounded-full bg-black h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
+        <div className="rounded-full bg-brand-action h-8 w-8 sm:h-12 sm:w-12"></div>
       </div>
     </div>
   );
@@ -61,7 +61,7 @@ const ArticleDetail = () => {
   ));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt 
                     py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -74,9 +74,9 @@ const ArticleDetail = () => {
           onClick={handleBack}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="mb-5 inline-flex items-center px-4 py-2 rounded-lg bg-white/90 
-                     text-green-800 font-semibold shadow-md hover:bg-white 
-                     focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="mb-5 inline-flex items-center px-4 py-2 rounded-lg bg-brand-action 
+                     text-white font-semibold shadow-md hover:bg-brand-actionHover 
+                     focus:outline-none focus:ring-2 focus:ring-brand-accent"
         >
           Back
         </motion.button>
@@ -86,7 +86,7 @@ const ArticleDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
           className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center mb-6 sm:mb-8 
-                     text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-black
+                     text-brand-ink
                      leading-tight sm:leading-tight lg:leading-tight"
         >
           {article.title}
@@ -96,11 +96,11 @@ const ArticleDetail = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="bg-white shadow-lg sm:shadow-xl lg:shadow-2xl rounded-2xl sm:rounded-3xl 
+          className="bg-brand-surface shadow-lg sm:shadow-xl lg:shadow-2xl rounded-2xl sm:rounded-3xl border border-brand-accent/30
                      overflow-hidden transform hover:scale-105 transition duration-300"
         >
           <div className="p-4 sm:p-6 lg:p-8">
-            <p className="text-base sm:text-lg lg:text-xl text-gray-800 leading-relaxed 
+            <p className="text-base sm:text-lg lg:text-xl text-brand-muted leading-relaxed 
                          mb-6 sm:mb-8 whitespace-pre-wrap">
               {article.content}
             </p>
@@ -117,10 +117,9 @@ const ArticleDetail = () => {
                     className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 
                              border border-transparent text-sm sm:text-base font-medium 
                              rounded-full shadow-sm text-white 
-                             bg-gradient-to-r from-blue-600 to-black 
-                             hover:from-blue-700 hover:to-gray-900 
+                             bg-brand-action hover:bg-brand-actionHover 
                              focus:outline-none focus:ring-2 focus:ring-offset-2 
-                             focus:ring-blue-500 transition-all duration-300"
+                             focus:ring-brand-accent transition-all duration-300"
                   >
                     View Article
                   </Link>
@@ -135,10 +134,9 @@ const ArticleDetail = () => {
                 className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 
                          border border-transparent text-sm sm:text-base font-medium 
                          rounded-full shadow-sm text-white 
-                         bg-gradient-to-r from-green-600 to-black 
-                         hover:from-green-700 hover:to-gray-900 
+                         bg-brand-action hover:bg-brand-actionHover 
                          focus:outline-none focus:ring-2 focus:ring-offset-2 
-                         focus:ring-green-500 transition-all duration-300"
+                         focus:ring-brand-accent transition-all duration-300"
               >
                 <svg 
                   className="w-4 h-4 sm:w-5 sm:h-5 mr-2" 
@@ -167,3 +165,8 @@ const ArticleDetail = () => {
 };
 
 export default ArticleDetail;
+
+
+
+
+

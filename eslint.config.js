@@ -5,7 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'node_modules', 'Backend/node_modules'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -28,11 +28,35 @@ export default [
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
+      'no-unused-vars': ['warn', {
+        varsIgnorePattern: '^React$',
+        argsIgnorePattern: '^_',
+      }],
+      'no-case-declarations': 'warn',
+      'no-useless-escape': 'warn',
+      'react/no-unescaped-entities': 'off',
+      'react/prop-types': 'off',
+      'react-hooks/rules-of-hooks': 'warn',
       'react/jsx-no-target-blank': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+    },
+  },
+  {
+    files: ['Backend/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['Backend/tests/**/*.js', 'src/**/*.test.{js,jsx}', 'src/setupTests.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
   },
 ]

@@ -1,5 +1,6 @@
 // import CoachModel from "../models/CoachModel.js";
 import axios from "axios";
+import bcrypt from "bcrypt";
 import CoachDetails from "../models/CoachModel.js";
 import ArticleModel from "../models/articleModel.js"; // for default export
 import UserModel from "../models/userModel.js";
@@ -13,6 +14,8 @@ import mongoose from "mongoose";
 import Video from "../models/videoModel.js";
 import Article from "../models/articleModel.js";
 import ErrorHandler, { catchAsync } from "../middlewares/errorHandler.js";
+import { canAccessCoachContentByCoachId } from "../utils/contentAccess.js";
+import { notifyCoachSubscribers } from "../services/notificationService.js";
 
 const getUploadedFileData = (file) => ({
   filePath: file.path,
@@ -34,6 +37,13 @@ const isPdfArticle = (article) => {
     value === 'application/pdf' || /\.pdf($|[?#])/i.test(value)
   ));
 };
+
+const isArticleFile = (file) => [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+].includes(file?.mimetype);
+
+const isVideoFile = (file) => file?.mimetype?.startsWith('video/');
 
 const canAccessCoachContent = async (req, content) => {
   const user = await UserModel.findById(req.userId).select("Role subscribedCoaches");
@@ -168,6 +178,9 @@ export const addArticle = [
       if (!req.file) {
         return next(new ErrorHandler('No file uploaded', 400));
       }
+      if (!isArticleFile(req.file)) {
+        return next(new ErrorHandler('Articles must be uploaded as PDF or DOCX files', 400));
+      }
       next();
     });
   },
@@ -189,6 +202,14 @@ export const addArticle = [
     });
 
     await article.save();
+    await notifyCoachSubscribers(coachId, {
+      type: "new_article",
+      title: "New coach article",
+      message: title,
+      link: `/coach/ArticleDetail/${article._id}`,
+      metadata: { article: article._id },
+    });
+
     res.status(201).json({ 
       success: true,
       message: "Article added successfully", 
@@ -207,6 +228,9 @@ export const addVideo = [
       }
       if (!req.file) {
         return next(new ErrorHandler('No file uploaded', 400));
+      }
+      if (!isVideoFile(req.file)) {
+        return next(new ErrorHandler('Videos must be uploaded as video files', 400));
       }
       next();
     });
@@ -230,6 +254,13 @@ export const addVideo = [
     });
 
     await video.save();
+    await notifyCoachSubscribers(coachId, {
+      type: "new_video",
+      title: "New coach video",
+      message: title,
+      link: `/coach/VideoDetail/${video._id}`,
+      metadata: { video: video._id },
+    });
 
     res.status(201).json({ 
       success: true,
@@ -340,6 +371,9 @@ export const getCoachRevenue = async (req, res) => {
 export const getCoachContent = async (req, res) => {
   try {
     const { coachId } = req.params;
+    if (!(await canAccessCoachContentByCoachId(req, coachId))) {
+      return res.status(403).json({ message: "You do not have access to this coach content" });
+    }
     
     // Get videos and articles with populated views
     const videos = await Video.find({ coach: coachId });
@@ -397,10 +431,8 @@ export const updateCoachProfile = async (req, res) => {
     if (UserName) user.UserName = UserName;
     if (Email) user.Email = Email;
     
-    // Only update password if it's not the placeholder
     if (Password && Password !== '********') {
-      // Password will be hashed by the pre-save hook in the model
-      user.Password = Password;
+      return res.status(400).json({ message: "Use the change-password endpoint to update your password" });
     }
     
     await user.save();
@@ -480,6 +512,9 @@ export const updateArticle = [
       if (err) {
         console.error("Article update upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
+      }
+      if (req.file && !isArticleFile(req.file)) {
+        return next(new ErrorHandler('Articles must be uploaded as PDF or DOCX files', 400));
       }
       next();
     });
@@ -562,6 +597,9 @@ export const updateVideo = [
       if (err) {
         console.error("Video update upload error:", err);
         return next(new ErrorHandler(err.message || 'File upload error', 400));
+      }
+      if (req.file && !isVideoFile(req.file)) {
+        return next(new ErrorHandler('Videos must be uploaded as video files', 400));
       }
       next();
     });
@@ -737,6 +775,43 @@ export const downloadArticleById = async (req, res) => {
     return res.redirect(article.filePath);
   } catch (error) {
     console.error("Error downloading article:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changeCoachPassword = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "Current password, new password, and confirm password are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New password and confirm password do not match" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const coach = await UserModel.findById(userId);
+    if (!coach) {
+      return res.status(404).json({ message: "Coach not found" });
+    }
+
+    const passwordMatches = await bcrypt.compare(currentPassword, coach.Password);
+    if (!passwordMatches) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    coach.Password = newPassword;
+    await coach.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Error changing coach password:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

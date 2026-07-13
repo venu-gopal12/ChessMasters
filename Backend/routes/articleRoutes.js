@@ -94,7 +94,7 @@ router.post("/:id/view", authMiddleware, recordArticleView);
  *       500:
  *         description: Server error
  */
-router.get("/coach/:coachId", getArticlesByCoach);
+router.get("/coach/:coachId", authMiddleware, getArticlesByCoach);
 
 export default router;
 

@@ -1,5 +1,5 @@
 # Stage 1: Build the frontend application
-FROM node:16 as build
+FROM node:22-alpine AS build
 
 # Set working directory
 WORKDIR /app
@@ -8,14 +8,20 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the rest of the application code
 COPY . .
 
 # Pass build-time environment variable
 ARG VITE_BACKEND
+ARG VITE_TURN_URLS
+ARG VITE_TURN_USERNAME
+ARG VITE_TURN_CREDENTIAL
 ENV VITE_BACKEND=$VITE_BACKEND
+ENV VITE_TURN_URLS=$VITE_TURN_URLS
+ENV VITE_TURN_USERNAME=$VITE_TURN_USERNAME
+ENV VITE_TURN_CREDENTIAL=$VITE_TURN_CREDENTIAL
 
 # Build the application
 RUN npm run build

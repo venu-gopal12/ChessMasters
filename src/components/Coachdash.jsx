@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import NavbarPlay from "./navbarplay";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -7,6 +7,7 @@ import { chessMastersBackend } from "../../config.js";
 
 const Coachdash = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [subscribedcoaches , setsubscribedcoaches] = useState([])
   const [loading, setLoading] = useState(true);
@@ -77,9 +78,9 @@ const Coachdash = () => {
 
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-indigo-500 to-purple-600">
+    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
       <motion.div
-        className="text-2xl sm:text-3xl md:text-4xl font-bold text-white px-4 text-center"
+        className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-ink px-4 text-center"
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -90,9 +91,9 @@ const Coachdash = () => {
   );
 
   if (error) return (
-    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-red-500 to-pink-600">
+    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
       <motion.div
-        className="text-xl sm:text-2xl md:text-3xl font-semibold text-white px-4 text-center"
+        className="text-xl sm:text-2xl md:text-3xl font-semibold text-brand-danger px-4 text-center"
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -103,11 +104,19 @@ const Coachdash = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt">
       <NavbarPlay />
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="fixed left-4 top-24 z-20 inline-flex items-center gap-2 rounded-lg bg-brand-action px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2 focus:ring-offset-brand-page sm:left-6 md:left-8"
+      >
+        <span aria-hidden="true">←</span>
+        Back
+      </button>
       <div className="max-w-4xl mx-auto py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <motion.div 
-          className="bg-white shadow-lg sm:shadow-xl md:shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden"
+          className="bg-brand-surface shadow-lg sm:shadow-xl md:shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden border border-brand-accent/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -121,11 +130,10 @@ const Coachdash = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-indigo-800 
-                             bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-brand-ink">
                   {key.replace(/([A-Z])/g, ' $1').trim()} 
                 </h2>
-                <p className="text-base sm:text-lg md:text-xl text-gray-700 
+                <p className="text-base sm:text-lg md:text-xl text-brand-muted 
                              px-2 sm:px-4 md:px-6 whitespace-pre-wrap">
                   {profileData?.[key] || "Information not available."}
                 </p>
@@ -150,11 +158,11 @@ const Coachdash = () => {
         e.preventDefault(); // Prevent default behavior (redirection)
       }
     }}
-    className={`block w-full bg-gradient-to-r from-indigo-600 to-purple-600 
+    className={`block w-full bg-brand-action 
                 text-white text-lg sm:text-xl font-semibold 
                 py-3 sm:py-4 px-4 sm:px-6 rounded-full
-                hover:from-indigo-700 hover:to-purple-700 
-                focus:outline-none focus:ring-2 focus:ring-indigo-500 
+                hover:bg-brand-actionHover 
+                focus:outline-none focus:ring-2 focus:ring-brand-accent 
                 focus:ring-opacity-50 transition duration-300 ease-in-out 
                 transform hover:scale-105 text-center
                 shadow-md hover:shadow-xl ${
@@ -178,3 +186,8 @@ const Coachdash = () => {
 };
 
 export default Coachdash;
+
+
+
+
+

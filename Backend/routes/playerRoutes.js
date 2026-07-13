@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { body } from "express-validator";
 import {
   getPlayerDetails,
   getPlayerDetailsById,
@@ -11,11 +12,29 @@ import {
   getSubscribedCoachArticles, // Import the subscribed articles function
   getSubscribedCoachVideos, // Import the subscribed videos function
   updatePlayerProfile, // Import the new function
+  changePlayerPassword,
   deletePlayerAccount, // Import the new function
 } from "../controllers/playerControllers.js";
 import { isPlayer } from "../middlewares/isPlayer.js";
+import { authMiddleware } from "../middlewares/authMiddlerware.js";
+import { createRateLimiter } from "../middlewares/rateLimit.js";
+import { validateRequest } from "../middlewares/validateRequest.js";
 
 const router = Router();
+const playerWriteRateLimit = createRateLimiter({ windowMs: 60 * 1000, max: 30, keyPrefix: "player-write" });
+const profileValidation = [
+  body("UserName").optional().trim().isLength({ min: 3, max: 40 }).withMessage("Username must be 3-40 characters"),
+  body("Email").optional().isEmail().normalizeEmail().withMessage("Valid email is required"),
+];
+const passwordValidation = [
+  body("currentPassword").isLength({ min: 1, max: 128 }).withMessage("Current password is required"),
+  body("newPassword").isLength({ min: 6, max: 128 }).withMessage("New password must be 6-128 characters"),
+  body("confirmPassword").isLength({ min: 6, max: 128 }).withMessage("Confirm password is required"),
+];
+const subscriptionValidation = [
+  body("coachId").isMongoId().withMessage("Valid coach ID is required"),
+  body("plan").optional().isIn(["Standard"]).withMessage("Invalid subscription plan"),
+];
 
 // Place specific routes before parameterized routes
 /**
@@ -105,7 +124,8 @@ router.get("/details", isPlayer, getPlayerDetails);
  *       500:
  *         description: Server error
  */
-router.put("/update-profile", isPlayer, updatePlayerProfile); // Add this new route
+router.put("/update-profile", playerWriteRateLimit, isPlayer, profileValidation, validateRequest, updatePlayerProfile); // Add this new route
+router.put("/change-password", playerWriteRateLimit, isPlayer, passwordValidation, validateRequest, changePlayerPassword);
 /**
  * @openapi
  * /api/players/subscribed-articles:
@@ -241,7 +261,7 @@ router.get("/subscribed-videos", isPlayer, getSubscribedCoachVideos); // Add rou
  *       500:
  *         description: Server error
  */
-router.post("/subscribe", isPlayer, subscribeToCoach);
+router.post("/subscribe", playerWriteRateLimit, isPlayer, subscriptionValidation, validateRequest, subscribeToCoach);
 /**
  * @openapi
  * /api/players/unsubscribe:
@@ -285,7 +305,7 @@ router.post("/subscribe", isPlayer, subscribeToCoach);
  *       500:
  *         description: Server error
  */
-router.post("/unsubscribe", isPlayer, unsubscribeFromCoach); // Add unsubscribe route
+router.post("/unsubscribe", playerWriteRateLimit, isPlayer, [body("coachId").isMongoId().withMessage("Valid coach ID is required")], validateRequest, unsubscribeFromCoach); // Add unsubscribe route
 /**
  * @openapi
  * /api/players/delete-account:
@@ -504,7 +524,7 @@ router.get("/:coachId/subscriptionstatus", isPlayer, subscriptionStatus);
  *       500:
  *         description: Server error
  */
-router.get("/:playerId/game-stats", getPlayerGameStats);
+router.get("/:playerId/game-stats", authMiddleware, getPlayerGameStats);
 /**
  * @openapi
  * /api/players/{playerId}/subscribed-articles:

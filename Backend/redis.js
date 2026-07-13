@@ -14,12 +14,21 @@ export const connectRedis = async (io) => {
   }
 
   try {
-    client = createClient({ url: redisUrl });
+    client = createClient({
+      url: redisUrl,
+      socket: {
+        connectTimeout: 2000,
+        reconnectStrategy: false,
+      },
+    });
     subscriber = client.duplicate();
     client.on("error", error => console.error("Redis client error:", error.message));
     subscriber.on("error", error => console.error("Redis subscriber error:", error.message));
 
-    await Promise.all([client.connect(), subscriber.connect()]);
+    await Promise.race([
+      Promise.all([client.connect(), subscriber.connect()]),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Redis connection timed out")), 2500)),
+    ]);
     io.adapter(createAdapter(client, subscriber, {
       publishOnSpecificResponseChannel: true,
     }));

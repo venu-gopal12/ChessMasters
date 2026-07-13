@@ -1,4 +1,5 @@
 import express from 'express';
+import { body } from 'express-validator';
 import {
     deletePlayer,
     deleteCoach,
@@ -16,11 +17,19 @@ import {
     deleteAllGames,
     getTotalRevenue,
     updateRevenue,
-    getRevenueStats
+    getRevenueStats,
+    banUser,
+    getAuditLogs,
+    getReports,
+    unbanUser,
+    updateReportStatus
 } from '../controllers/adminControllers.js';
 import { isAdmin } from '../middlewares/isAdmin.js';
+import { createRateLimiter } from '../middlewares/rateLimit.js';
+import { validateRequest } from '../middlewares/validateRequest.js';
 
 const router = express.Router();
+const adminLoginRateLimit = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 15, keyPrefix: 'admin-login' });
 /**
  * @openapi
  * /api/admin/login:
@@ -63,8 +72,37 @@ const router = express.Router();
  *       401:
  *         description: Authentication failed
  */
-router.post('/login', adminLogin);
+router.post(
+    '/login',
+    adminLoginRateLimit,
+    [
+        body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+        body('password').isLength({ min: 1, max: 128 }).withMessage('Password is required')
+    ],
+    validateRequest,
+    adminLogin
+);
 router.use(isAdmin);
+
+router.get('/audit-logs', getAuditLogs);
+router.get('/reports', getReports);
+router.put(
+    '/reports/:reportId',
+    [
+        body('status').isIn(['open', 'reviewed', 'dismissed', 'resolved']).withMessage('Invalid report status')
+    ],
+    validateRequest,
+    updateReportStatus
+);
+router.post(
+    '/users/:userId/ban',
+    [
+        body('reason').optional({ values: 'falsy' }).trim().isLength({ max: 500 }).withMessage('Reason is too long')
+    ],
+    validateRequest,
+    banUser
+);
+router.post('/users/:userId/unban', unbanUser);
 
 /**
  * @openapi

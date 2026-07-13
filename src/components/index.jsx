@@ -6,7 +6,7 @@ import axios from "axios";
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { toast } from 'react-toastify';
-import { Book } from 'lucide-react';
+import { BarChart3, Book, GraduationCap, Play, Radio, Trophy, Users, Video, FileText } from 'lucide-react';
 import { motion } from "framer-motion";
 import { chessMastersBackend } from "../../config.js";
 
@@ -19,7 +19,7 @@ const chartOptions = {
     legend: {
       position: 'bottom',
       labels: {
-        color: '#10B981',
+        color: '#FDBA74',
       },
     },
   },
@@ -32,8 +32,10 @@ function HomePage() {
   const [articles, setArticles] = useState(null);
   const [videos, setVideos] = useState([]);
   const [games, setGames] = useState([]);
+  const [subscribedCoaches, setSubscribedCoaches] = useState([]);
   const [searchParams] = useSearchParams();
   const [isPlayer, setIsPlayer] = useState(searchParams.get('role') === 'player');
+  const [learningTab, setLearningTab] = useState("videos");
 
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState({
@@ -125,6 +127,16 @@ function HomePage() {
           }
           if (resp.data.Role === "player"){
           axios
+            .get(`${chessMastersBackend}/player/${resp.data._id}/subscribedCoaches`, { withCredentials: true })
+            .then((resp) => {
+              setSubscribedCoaches(Array.isArray(resp.data) ? resp.data : []);
+            })
+            .catch((err) => {
+              console.error("Error fetching subscribed coaches:", err);
+              setSubscribedCoaches([]);
+            });
+
+          axios
             .get(`${chessMastersBackend}/player/subscribed-articles`, { withCredentials: true })
             .then((resp) => {
               console.log('articles data', resp.data);
@@ -145,7 +157,7 @@ function HomePage() {
               console.error("Error fetching videos:", err);
               setVideos([]);
             });
-        } else {
+        } else if (resp.data.Role === "admin") {
           setArticles([]);
           setVideos([]);
           axios
@@ -157,6 +169,9 @@ function HomePage() {
               console.error("Error fetching Videos:", err);
               setVideos([]);
             });
+        } else {
+          setArticles([]);
+          setVideos([]);
         }
       })
       .catch((err) => {
@@ -175,21 +190,29 @@ function HomePage() {
   };
 
   useEffect(() => {
-    if (showStats && details) {
+    if (details && isPlayer) {
       fetchStats();
     }
-  }, [showStats, details]);
+  }, [details, isPlayer]);
 
   const chartData = {
     labels: ['Wins', 'Losses', 'Draws'],
     datasets: [
       {
         data: [stats.gamesWon, stats.gamesLost, stats.gamesDraw],
-        backgroundColor: ['#10B981', '#EF4444', '#F59E0B'],
-        hoverBackgroundColor: ['#059669', '#DC2626', '#D97706'],
+        backgroundColor: ['#2563EB', '#EF4444', '#F59E0B'],
+        hoverBackgroundColor: ['#1D4ED8', '#DC2626', '#D97706'],
       },
     ],
   };
+
+  const statCards = [
+    { label: "Games Played", value: stats.totalGamesPlayed },
+    { label: "Wins", value: stats.gamesWon },
+    { label: "Losses", value: stats.gamesLost },
+    { label: "Draws", value: stats.gamesDraw },
+    { label: "Rating", value: stats.elo },
+  ];
 
   const recordVideoView = async (videoId) => {
     try {
@@ -229,8 +252,8 @@ function HomePage() {
 
   if (!details || !articles) {
     return (
-      <div className="flex justify-center items-center h-screen bg-black">
-        <div className="text-base sm:text-lg md:text-xl lg:text-2xl text-green-400 animate-pulse">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt to-black">
+        <div className="text-base sm:text-lg md:text-xl lg:text-2xl text-brand-ink animate-pulse">
           Loading...
         </div>
       </div>
@@ -238,96 +261,132 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt to-black text-brand-ink">
       {isPlayer ? <NavbarPlay /> : <Navbar />}
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="bg-gray-900 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 
-                      mb-4 sm:mb-6 lg:mb-8 border-l-4 border-green-500">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl text-center font-bold text-green-400 
-                       mb-3 sm:mb-4">
-            Welcome back, {details.UserName}!
-          </h1>
-          
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <button onClick={() => navigate('/ChessBoard')} 
-                    className="flex-1 py-2 sm:py-3 px-4 sm:px-6 bg-gradient-to-r from-green-500 
-                             to-green-700 text-black font-bold rounded-lg transition-all duration-300 
-                             hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-2 
-                             focus:ring-green-500 focus:ring-opacity-50 transform hover:scale-105 
-                             text-sm sm:text-base">
-              Play Now!
-            </button>
-            
-            <motion.button 
-              onClick={() => navigate('/rules')}
-              className="flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 px-4 sm:px-6 
-                       bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold 
-                       rounded-lg shadow-md hover:shadow-lg transition-all duration-300 
-                       focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 
-                       transform hover:scale-105 text-sm sm:text-base"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Book size={18} />
-              Game Rules
-            </motion.button>
-          </div>
-        </div>
-
-        <div className="bg-gray-900 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border-l-4 border-green-500">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-center text-green-400 mb-3 sm:mb-4">
-            Stats
-          </h2>
-          {!showStats ? (
-            <button onClick={() => setShowStats(true)}
-                  className="w-full py-2 sm:py-3 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-green-700 text-black font-bold rounded-lg transition-all duration-300 hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transform hover:scale-105 text-sm sm:text-base">
-              View
-            </button>
-          ) : (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-5 sm:space-y-6">
+        <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-success">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5 lg:gap-8 items-center">
             <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 text-center mb-4">
-                <div className="p-2 sm:p-3 bg-gray-800 rounded-lg border border-green-500">
-                  <p className="font-medium text-green-400 text-sm sm:text-base">Games Played: {stats.totalGamesPlayed}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-gray-800 rounded-lg border border-green-500">
-                  <p className="font-medium text-green-400 text-sm sm:text-base">Wins: {stats.gamesWon}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-gray-800 rounded-lg border border-green-500">
-                  <p className="font-medium text-green-400 text-sm sm:text-base">Losses: {stats.gamesLost}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-gray-800 rounded-lg border border-green-500">
-                  <p className="font-medium text-green-400 text-sm sm:text-base">Draw: {stats.gamesDraw}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-gray-800 rounded-lg border border-green-500">
-                  <p className="font-medium text-green-400 text-sm sm:text-base">Rating: {stats.elo}</p>
-                </div>
+              <p className="text-xs sm:text-sm uppercase tracking-wider text-brand-muted font-semibold mb-2">Player Dashboard</p>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-ink mb-3">
+                Welcome back, {details.UserName}!
+              </h1>
+              <p className="text-sm sm:text-base text-brand-muted mb-5">
+                Start a match, review your progress, and continue your coach-led chess learning.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => navigate('/ChessBoard')}
+                  className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-success text-white font-bold rounded-lg transition-all duration-300 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-brand-success focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                >
+                  <Play size={18} />
+                  Play Now
+                </button>
+                <motion.button
+                  onClick={() => navigate('/rules')}
+                  className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-action text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Book size={18} />
+                  Game Rules
+                </motion.button>
               </div>
-              <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto h-48 sm:h-56 md:h-64 mb-4">
-                <Pie data={chartData} options={{ maintainAspectRatio: false }} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-brand-surfaceAlt border border-brand-success/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-brand-muted">Rating</p>
+                <p className="text-xl sm:text-2xl font-bold text-brand-ink">{stats.elo}</p>
               </div>
-              <button onClick={() => setShowStats(false)}
-                    className="w-full py-2 sm:py-3 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-green-700 text-black font-bold rounded-lg transition-all duration-300 hover:from-green-600 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transform hover:scale-105 text-sm sm:text-base">
-                Back
-              </button>
+              <div className="bg-brand-surfaceAlt border border-brand-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-brand-muted">Wins</p>
+                <p className="text-xl sm:text-2xl font-bold text-brand-ink">{stats.gamesWon}</p>
+              </div>
+              <div className="bg-brand-surfaceAlt border border-brand-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-brand-muted">Games</p>
+                <p className="text-xl sm:text-2xl font-bold text-brand-ink">{stats.totalGamesPlayed}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <button onClick={() => navigate('/ChessBoard')} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+            <Play className="text-brand-success mb-3" size={22} />
+            <p className="font-semibold text-brand-ink">Play Online</p>
+            <p className="text-xs text-brand-muted mt-1">Start a chess match</p>
+          </button>
+          <button onClick={() => navigate('/CoachesAvailable')} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+            <Users className="text-brand-accent mb-3" size={22} />
+            <p className="font-semibold text-brand-ink">Find Coach</p>
+            <p className="text-xs text-brand-muted mt-1">Browse coaching profiles</p>
+          </button>
+          <button onClick={() => navigate(`/player/${details._id}/profile`)} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+            <Radio className="text-brand-accent mb-3" size={22} />
+            <p className="font-semibold text-brand-ink">Live Coaching</p>
+            <p className="text-xs text-brand-muted mt-1">Start with a subscribed coach</p>
+          </button>
+          <button onClick={() => setLearningTab(videos.length > 0 ? "videos" : "articles")} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+            <GraduationCap className="text-brand-success mb-3" size={22} />
+            <p className="font-semibold text-brand-ink">View Lessons</p>
+            <p className="text-xs text-brand-muted mt-1">Videos and articles</p>
+          </button>
+        </section>
+
+        <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-success">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-brand-success/15 text-brand-success rounded-lg p-2">
+                <BarChart3 size={22} />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-brand-ink">Stats</h2>
+                <p className="text-xs sm:text-sm text-brand-muted">Your chess progress at a glance</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowStats((value) => !value)}
+              className="py-2 px-4 bg-brand-action text-white font-semibold rounded-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 text-sm"
+            >
+              {showStats ? "Hide Chart" : "Show Chart"}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 text-center">
+            {statCards.map((card) => (
+              <div key={card.label} className="p-3 bg-brand-surfaceAlt rounded-lg border border-brand-accent/70">
+                <p className="text-xs text-brand-muted mb-1">{card.label}</p>
+                <p className="font-bold text-brand-ink text-lg sm:text-xl">{card.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {showStats && (
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto h-48 sm:h-56 md:h-64 mt-5">
+              <Pie data={chartData} options={chartOptions} />
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="bg-gray-900 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md 
-                p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border-l-4 border-green-500">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-green-400 
-                mb-3 sm:mb-4 lg:mb-6">
-            Your Games
-          </h2>
+        <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md 
+                p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border-l-4 border-brand-success">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 lg:mb-6">
+            <div>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-brand-ink">Recent Games</h2>
+              <p className="text-xs sm:text-sm text-brand-muted mt-1">Review your latest matches and learn from each result.</p>
+            </div>
+            <Trophy className="text-brand-success hidden sm:block" size={28} />
+          </div>
           <div className="relative">
             <div ref={gameScrollContainerRef} 
                  className="flex overflow-x-auto overflow-y-hidden space-x-3 sm:space-x-4 
                           items-center px-2 sm:px-4 h-[280px]
-                          scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
+                          scrollbar-thin scrollbar-thumb-brand-success scrollbar-track-brand-surfaceAlt">
               {games.map((game) => {
                 // Determine if current user won, lost, or drew
                 const isUserWhite = game.playerWhite?._id === details._id;
@@ -338,19 +397,19 @@ function HomePage() {
                 
                 // Set colors based on result
                 const bgGradient = userWon 
-                  ? "from-green-900 to-green-700" 
+                  ? "from-brand-surfaceAlt to-brand-action" 
                   : userLost 
                     ? "from-red-900 to-red-700" 
                     : "from-yellow-900 to-yellow-700";
                 
                 const borderColor = userWon 
-                  ? "border-green-400" 
+                  ? "border-brand-accent" 
                   : userLost 
                     ? "border-red-400" 
                     : "border-yellow-400";
                 
                 const resultColor = userWon 
-                  ? "text-green-300" 
+                  ? "text-brand-ink" 
                   : userLost 
                     ? "text-red-300" 
                     : "text-yellow-300";
@@ -396,7 +455,7 @@ function HomePage() {
                     </div>
                     
                     {/* Player matchup - simplified */}
-                    <div className="p-2 flex-grow-0 flex flex-col items-center border-b border-gray-700">
+                    <div className="p-2 flex-grow-0 flex flex-col items-center border-b border-white/10">
                       <div className="flex items-center w-full justify-between">
                         <div className="flex items-center">
                           <div className="w-4 h-4 rounded-full bg-white mr-1"></div>
@@ -407,7 +466,7 @@ function HomePage() {
                         <span className="text-white/70 text-xs">{isUserWhite ? "(You)" : ""}</span>
                       </div>
                       
-                      <div className="text-xs text-gray-400 my-0.5">vs</div>
+                      <div className="text-xs text-brand-muted my-0.5">vs</div>
                       
                       <div className="flex items-center w-full justify-between">
                         <div className="flex items-center">
@@ -423,12 +482,12 @@ function HomePage() {
                     {/* Game details - simplified */}
                     <div className="p-3 bg-black/20 flex-grow flex flex-col justify-between">
                       <div>
-                        <div className="text-xs text-gray-300">
+                        <div className="text-xs text-white/80">
                           <span className="mr-1">📅</span> {formattedDate}
                         </div>
                         
                         {gameReason && (
-                          <div className="text-xs text-gray-300 mt-1">
+                          <div className="text-xs text-white/80 mt-1">
                             <span className="mr-1">🏆</span> 
                             {isDraw ? `Draw by ${gameReason}` : userWon ? `Win by ${gameReason}` : `Loss by ${gameReason}`}
                           </div>
@@ -442,7 +501,7 @@ function HomePage() {
                         }}
                         className="w-full flex items-center justify-center bg-white/10 hover:bg-white/20 
                                  text-white py-2 px-3 rounded-lg transition-all duration-300
-                                 group border border-white/30 hover:border-white/50 backdrop-blur-sm
+                                 group border border-white/30 hover:border-brand-accent backdrop-blur-sm
                                  font-medium mt-2"
                       >
                         <span className="group-hover:scale-110 transition-transform duration-300">♟</span>
@@ -454,71 +513,149 @@ function HomePage() {
               })}
             </div>
           </div>
-        </div>
+        </section>
 
-        {isPlayer && videos && videos.length > 0 && (
-          <div className="bg-gray-900 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md 
-                        p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border-l-4 border-green-500">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-green-400 
-                        mb-3 sm:mb-4 lg:mb-6">
-              Subscribed Videos
-            </h2>
-            <div className="relative">
-              <div ref={videoScrollContainerRef} 
-                  className="flex overflow-x-auto space-x-3 sm:space-x-4 
-                          items-center px-2 sm:px-4 min-h-[120px] sm:min-h-[150px]
-                          scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
-                {videos.map((video) => (
-                  <Link key={video._id} 
-                        to={`/VideoDetail/${video._id}`} 
-                        onClick={() => {
-                          // Record video view when clicked
-                          recordVideoView(video._id);
-                        }}
-                        className="flex-shrink-0 inline-flex items-center justify-center 
-                                bg-green-500 text-white font-medium sm:font-semibold 
-                                py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-green-600 
-                                transition-all duration-300 text-sm sm:text-base 
-                                transform hover:scale-105">
-                    {video.title}
+        {isPlayer && (
+          <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-success">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+              <div>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-brand-ink">Learning</h2>
+                <p className="text-xs sm:text-sm text-brand-muted mt-1">Continue lessons from your subscribed coaches.</p>
+              </div>
+              <div className="inline-flex rounded-lg bg-brand-surfaceAlt border border-brand-accent/30 p-1">
+                <button
+                  onClick={() => setLearningTab("videos")}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
+                    learningTab === "videos" ? "bg-brand-success text-white" : "text-brand-muted hover:text-white"
+                  }`}
+                >
+                  <Video size={16} />
+                  Videos
+                </button>
+                <button
+                  onClick={() => setLearningTab("articles")}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
+                    learningTab === "articles" ? "bg-brand-action text-white" : "text-brand-muted hover:text-white"
+                  }`}
+                >
+                  <FileText size={16} />
+                  Articles
+                </button>
+              </div>
+            </div>
+
+            {learningTab === "videos" ? (
+              videos && videos.length > 0 ? (
+                <div ref={videoScrollContainerRef} className="flex overflow-x-auto space-x-3 sm:space-x-4 items-center px-1 sm:px-2 min-h-[120px] scrollbar-thin scrollbar-thumb-brand-success scrollbar-track-brand-surfaceAlt">
+                  {videos.map((video) => (
+                    <Link
+                      key={video._id}
+                      to={`/VideoDetail/${video._id}`}
+                      onClick={() => recordVideoView(video._id)}
+                      className="flex-shrink-0 min-w-44 sm:min-w-56 bg-brand-success text-white font-medium sm:font-semibold p-4 rounded-lg hover:bg-green-600 transition-all duration-300 text-sm sm:text-base transform hover:scale-105"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/15">
+                          <Video size={20} />
+                        </span>
+                        <span className="line-clamp-2 text-left leading-snug">{video.title}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-brand-surfaceAlt border border-brand-accent/30 rounded-lg p-5 text-center text-brand-muted">
+                  No subscribed videos yet.
+                </div>
+              )
+            ) : articles && articles.length > 0 ? (
+              <div ref={articleScrollContainerRef} className="flex overflow-x-auto space-x-3 sm:space-x-4 items-center px-1 sm:px-2 min-h-[120px] scrollbar-thin scrollbar-thumb-brand-success scrollbar-track-brand-surfaceAlt">
+                {articles.map((article) => (
+                  <Link
+                    key={article._id}
+                    to={`/ArticleDetail/${article._id}`}
+                    state={{ returnTo: `${location.pathname}${location.search}` }}
+                    onClick={() => recordArticleView(article._id)}
+                    className="flex-shrink-0 min-w-44 sm:min-w-56 bg-brand-action text-white font-medium sm:font-semibold p-4 rounded-lg hover:bg-brand-actionHover transition-all duration-300 text-sm sm:text-base transform hover:scale-105"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/15">
+                        <FileText size={20} />
+                      </span>
+                      <span className="line-clamp-2 text-left leading-snug">{article.title}</span>
+                    </div>
                   </Link>
                 ))}
               </div>
-            </div>
-          </div>
+            ) : (
+              <div className="bg-brand-surfaceAlt border border-brand-accent/30 rounded-lg p-5 text-center text-brand-muted">
+                No subscribed articles yet.
+              </div>
+            )}
+          </section>
         )}
 
-        {isPlayer && articles && articles.length > 0 && (
-          <div className="bg-gray-900 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md 
-                        p-4 sm:p-6 lg:p-8 border-l-4 border-green-500">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-green-400 
-                        mb-3 sm:mb-4 lg:mb-6">
-              Subscribed Articles
-            </h2>
-            <div className="relative">
-              <div ref={articleScrollContainerRef} 
-                  className="flex overflow-x-auto space-x-3 sm:space-x-4 
-                          items-center px-2 sm:px-4 min-h-[120px] sm:min-h-[150px]
-                          scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-gray-800">
-                {articles.map((article) => (
-                  <Link key={article._id} 
-                        to={`/ArticleDetail/${article._id}`}
-                        state={{ returnTo: `${location.pathname}${location.search}` }}
-                        onClick={() => {
-                          // Record article view when clicked
-                          recordArticleView(article._id);
-                        }}
-                        className="flex-shrink-0 inline-flex items-center justify-center 
-                                bg-green-500 text-white font-medium sm:font-semibold 
-                                py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-green-600 
-                                transition-all duration-300 text-sm sm:text-base 
-                                transform hover:scale-105">
-                    {article.title}
-                  </Link>
-                ))}
+        {isPlayer && (
+          <section className="bg-gradient-to-r from-brand-surface to-brand-surfaceAlt rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-accent">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-semibold text-brand-ink">Your Coaches</h2>
+                <p className="text-sm text-brand-muted mt-2">
+                  Start a live coaching chess game with one of your subscribed coaches.
+                </p>
               </div>
+              <button
+                onClick={() => navigate(`/player/${details._id}/profile`)}
+                className="inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-brand-action text-white font-semibold rounded-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 text-sm"
+              >
+                View My Coaches
+              </button>
             </div>
-          </div>
+
+            {subscribedCoaches.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subscribedCoaches.map((coach) => {
+                  const coachUserId = coach.user?._id || coach._id;
+                  const coachName = coach.UserName || coach.user?.UserName || "Coach";
+
+                  return (
+                    <div key={coach._id || coachUserId} className="bg-brand-surface/80 border border-brand-accent/50 rounded-lg p-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <img
+                          src={coach.imageUrl || "/pngtree-chess-rook-front-view-png-image_7505306-2460555070.png"}
+                          alt={coachName}
+                          className="h-14 w-14 rounded-lg object-cover border border-brand-success/50 bg-brand-surfaceAlt"
+                        />
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-brand-ink truncate">{coachName}</h3>
+                          <p className="text-xs text-brand-accent mt-1">Subscribed coach</p>
+                          <p className="text-xs text-brand-muted mt-1">Rating: {coach.rating || "N/A"}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/ChessBoard?mode=coaching&coachId=${coachUserId}&studentId=${details._id}`)}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-action px-4 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50"
+                      >
+                        <Radio size={16} />
+                        Start Live Game
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-brand-surface/80 border border-brand-accent/30 rounded-lg p-5 text-center">
+                <p className="text-brand-muted mb-3">No subscribed coaches found.</p>
+                <button
+                  onClick={() => navigate('/CoachesAvailable')}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-success px-4 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:bg-green-600"
+                >
+                  <Users size={16} />
+                  Find Coach
+                </button>
+              </div>
+            )}
+          </section>
         )}
       </div>
     </div>
@@ -526,3 +663,7 @@ function HomePage() {
 }
 
 export default HomePage;
+
+
+
+

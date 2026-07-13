@@ -10,7 +10,7 @@ export const isCoach = async (req, res, next) => {
     const decoded = jwt.verify(token, jwtSecretKey);
     const user = await UserModel.findById(decoded.userId);
     // console.log(user.Role)
-    if (!user || user.Role !== "coach") {
+    if (!user || user.Role !== "coach" || user.Status !== "Active") {
       return res.status(403).json({ message: "Unauthorized access." });
     }
 

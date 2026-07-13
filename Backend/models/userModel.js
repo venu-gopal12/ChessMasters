@@ -4,10 +4,15 @@ import bcrypt from "bcrypt";
 const { Schema, model } = mongoose; // Destructure Schema and model from mongoose
 
 const UserModelSchema = new Schema({
-  UserName: { type: String, required: true, unique: true },
-  Email: { type: String, required: true, unique: true },
+  UserName: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 40 },
+  Email: { type: String, required: true, unique: true, trim: true, lowercase: true },
   Password: { type: String, required: true },
-  Status: { type: String, default: "Active" },
+  Status: { type: String, default: "Active", enum: ["Active", "Banned"] },
+  emailVerified: { type: Boolean, default: false },
+  emailVerifiedAt: { type: Date },
+  banReason: { type: String, trim: true, maxlength: 500 },
+  bannedAt: { type: Date },
+  bannedBy: { type: Schema.Types.ObjectId, ref: "AdminModel" },
   Role: { type: String, required: true, enum: ["player", "coach"] },
   subscribedCoaches: [{ type: Schema.Types.ObjectId, ref: "CoachDetails" }],
   gamesWon: { type: Number, default: 0 },
@@ -20,8 +25,7 @@ const UserModelSchema = new Schema({
       elo: { type: Number, required: true },
     },
   ], // Added ELO history field
-  createdAt: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
 UserModelSchema.set("toJSON", {
   transform: (_document, result) => {

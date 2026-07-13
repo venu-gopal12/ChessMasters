@@ -11,6 +11,7 @@ const {
   MONGODB_URI,
   VITE_BACKEND,
   REDIS_URL,
+  INTERNAL_API_KEY,
 } = process.env;
 
 // Validate required variables
@@ -25,3 +26,4 @@ export const mongodbUri = MONGODB_URI || "mongodb://localhost:27017/chessmasters
 export const chessMastersBackend = VITE_BACKEND
 //  || "http://localhost:3000"; // default fallback
 export const redisUrl = REDIS_URL;
+export const internalApiKey = INTERNAL_API_KEY || "development-internal-api-key";

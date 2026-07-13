@@ -39,15 +39,15 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center p-4">
-      <section className="bg-black/80 rounded-2xl shadow-xl p-8 w-full max-w-md text-green-300">
-        <h1 className="text-3xl font-bold text-center text-green-400 mb-5">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt flex items-center justify-center p-4">
+      <section className="bg-brand-surface rounded-2xl shadow-xl p-8 w-full max-w-md text-brand-ink border border-brand-accent/30">
+        <h1 className="text-3xl font-bold text-center text-brand-ink mb-5">
           Confirm subscription
         </h1>
         <p className="text-center mb-4">
           Standard plan with <strong>{coachName}</strong> for 30 days.
         </p>
-        <p className="rounded-lg border border-amber-400 bg-amber-950/50 p-3 text-sm text-amber-200 mb-6">
+        <p className="rounded-lg border border-brand-accent/40 bg-brand-accentSoft p-3 text-sm text-brand-muted mb-6">
           Demo billing mode: no card information is collected. Connect a PCI-compliant payment
           provider before enabling real charges.
         </p>
@@ -55,14 +55,19 @@ const PaymentPage = () => {
           type="button"
           onClick={confirmSubscription}
           disabled={submitting}
-          className="w-full rounded-md bg-green-600 px-4 py-3 font-semibold text-black hover:bg-green-700 disabled:opacity-50"
+          className="w-full rounded-md bg-brand-action px-4 py-3 font-semibold text-white hover:bg-brand-actionHover disabled:opacity-50"
         >
-          {submitting ? "Activating…" : "Activate demo subscription"}
+          {submitting ? "Activating..." : "Activate demo subscription"}
         </button>
-        {error && <p className="mt-4 text-center text-red-400">{error}</p>}
+        {error && <p className="mt-4 text-center text-brand-danger">{error}</p>}
       </section>
     </div>
   );
 };
 
 export default PaymentPage;
+
+
+
+
+

@@ -60,7 +60,7 @@ function Greeting({ onLoginSuccess }) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 md:px-6 py-2 bg-blue-500 text-white text-sm md:text-base font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300"
+                  className="px-4 md:px-6 py-2 bg-brand-action text-white text-sm md:text-base font-semibold rounded-lg shadow-md hover:bg-brand-actionHover transition-all duration-300"
                   onClick={handleLoginClick}
                 >
                   Log In
@@ -112,7 +112,7 @@ function Greeting({ onLoginSuccess }) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 md:px-6 py-2 bg-blue-500 text-white text-sm md:text-base font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300"
+                  className="px-4 md:px-6 py-2 bg-brand-action text-white text-sm md:text-base font-semibold rounded-lg shadow-md hover:bg-brand-actionHover transition-all duration-300"
                   onClick={handleLoginClick}
                 >
                   Log In
@@ -131,3 +131,8 @@ function Greeting({ onLoginSuccess }) {
 }
 
 export default Greeting;
+
+
+
+
+

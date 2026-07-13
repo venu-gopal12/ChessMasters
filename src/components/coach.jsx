@@ -22,7 +22,7 @@ function Coach() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 
+    <div className="bg-gradient-to-br from-brand-page to-brand-pageAlt 
                     p-4 sm:p-6 md:p-8 lg:p-12 
                     flex justify-center items-center min-h-screen">
       <div 
@@ -42,7 +42,7 @@ function Coach() {
                      border-4 border-white"
         />
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl 
-                      text-gray-800 text-center leading-relaxed 
+                      text-brand-muted text-center leading-relaxed 
                       max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg 
                       mx-auto font-medium">
           Get access to the best coaches available all over the world. 
@@ -55,3 +55,7 @@ function Coach() {
 }
 
 export default Coach;
+
+
+
+

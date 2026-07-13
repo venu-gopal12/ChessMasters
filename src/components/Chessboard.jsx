@@ -4,9 +4,23 @@ import { Chess } from "chess.js";
 import MoveHistory from "./MoveHistory";
 import { useSelector } from 'react-redux';
 import io from "socket.io-client";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { chessMastersBackend } from "../../config.js";
+import LiveCoachingCall from "./LiveCoachingCall";
+
+const socketEndpoint = () => {
+  if (chessMastersBackend.startsWith("/")) {
+    return {
+      url: window.location.origin,
+      path: `${chessMastersBackend.replace(/\/$/, "")}/socket.io`,
+    };
+  }
+
+  return {
+    url: chessMastersBackend,
+    path: "/socket.io",
+  };
+};
 
 const MAX_BOARD_WIDTH = 715;
 const MIN_BOARD_WIDTH = 280;
@@ -37,8 +51,12 @@ const requestFullscreen = (element) => {
 
 function ChessBoard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const userId = useSelector((state) => state.user.userId); // Using Redux for userId
   const role = useSelector((state) => state.user.role);
+  const isCoachingMode = searchParams.get("mode") === "coaching";
+  const coachingCoachId = searchParams.get("coachId");
+  const coachingStudentId = searchParams.get("studentId");
   const [game, setGame] = useState(new Chess());
   const [history, setHistory] = useState([]);
   const [winner, setWinner] = useState(null);
@@ -62,9 +80,15 @@ function ChessBoard() {
   const [showEloAnimation, setShowEloAnimation] = useState(false);
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("Connecting to game server...");
+  const [disconnectCountdown, setDisconnectCountdown] = useState(null);
+  const [isGameSaved, setIsGameSaved] = useState(false);
   const socket = useRef(null);
   const containerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
+  const pendingMoveRef = useRef(null);
+
+  const getMoveKey = (move) => `${move.from}-${move.to}-${move.promotion || ""}`;
 
   // Resize board logic
   useEffect(() => {
@@ -122,6 +146,24 @@ function ChessBoard() {
     });
   }
 
+  const applyPlayerDetails = (players = []) => {
+    const whitePlayer = players.find((p) => p.color === "w");
+    const blackPlayer = players.find((p) => p.color === "b");
+
+    setPlayers({
+      white: {
+        username: whitePlayer?.username || "Waiting",
+        userId: whitePlayer?.userId || null,
+        elo: whitePlayer?.elo || 1200,
+      },
+      black: {
+        username: blackPlayer?.username || "Waiting",
+        userId: blackPlayer?.userId || null,
+        elo: blackPlayer?.elo || 1200,
+      },
+    });
+  };
+
   // Socket connection and game setup
   useEffect(() => {
     if (!userId) {
@@ -129,8 +171,12 @@ function ChessBoard() {
       return;
     }
 
-    socket.current = io(`${chessMastersBackend}`, {
+    const endpoint = socketEndpoint();
+    setConnectionStatus("Connecting to game server...");
+    setIsGameSaved(false);
+    socket.current = io(endpoint.url, {
       transports: ['websocket'],
+      path: endpoint.path,
       withCredentials: true,
       query: { userId }, // Send userId through query using Redux
       // upgrade: false,
@@ -138,33 +184,37 @@ function ChessBoard() {
       // path: "/socket.io",
     });
 
-    socket.current.emit("checkReconnection", userId );
+    if (isCoachingMode) {
+      setConnectionStatus("Joining coaching board...");
+      socket.current.emit("joinCoachingGame", {
+        coachId: coachingCoachId,
+        studentId: coachingStudentId || userId,
+      });
+    } else {
+      setConnectionStatus("Checking for an active game...");
+      socket.current.emit("checkReconnection", userId );
+    }
 
     socket.current.on("reconnected", ({ room, color, fen, players }) => {
       setRoom(room);
       setColor(color);
-      setIsConnected(true);
+      setIsConnected(players.length === 2);
+      setConnectionStatus("Reconnected to your game.");
+      setDisconnectCountdown(null);
       setGame(new Chess(fen));
 
-      const whitePlayers = players.find((p) => p.color === "w");
-      const blackPlayers = players.find((p) => p.color === "b");
-
-      setPlayers({
-        white: {
-          username: whitePlayers.username,
-          userId: whitePlayers.userId,
-          elo: whitePlayers.elo || 1200,
-        },
-        black: {
-          username: blackPlayers.username,
-          userId: blackPlayers.userId,
-          elo: blackPlayers.elo || 1200,
-        },
-      });
+      applyPlayerDetails(players);
     });
 
     socket.current.on("notReconnected", () => {
+      setConnectionStatus("Finding an opponent...");
       socket.current.emit("joinGame", userId );
+    });
+
+    socket.current.on("coachingGameError", (message) => {
+      console.error(message);
+      alert(message);
+      navigate(role === "coach" ? `/coach/${userId}/CoachDashboard` : `/player/${userId}/profile`);
     });
 
     // IMPORTANT CHANGE: Replace the beforeunload event with a custom handler
@@ -182,6 +232,7 @@ function ChessBoard() {
 
     socket.current.on("assignColor", (assignedColor) => {
       setColor(assignedColor);
+      setConnectionStatus("Waiting for another player...");
     });
 
     socket.current.on("roomAssigned", (assignedRoom) => {
@@ -189,40 +240,34 @@ function ChessBoard() {
     });
 
     socket.current.on("startGame", ({ fen, players }) => {
+      pendingMoveRef.current = null;
       setIsConnected(true);
+      setConnectionStatus("Game in progress");
+      setDisconnectCountdown(null);
+      setIsGameSaved(false);
       setGame(new Chess(fen));
       // Reset history when game starts to ensure clean state
       setHistory([]);
 
       // Set player usernames and ELO
-      const whitePlayers = players.find((p) => p.color === "w");
-      const blackPlayers = players.find((p) => p.color === "b");
-
-      setPlayers({
-        white: {
-          username: whitePlayers.username,
-          userId: whitePlayers.userId,
-          elo: whitePlayers.elo || 1200,
-        },
-        black: {
-          username: blackPlayers.username,
-          userId: blackPlayers.userId,
-          elo: blackPlayers.elo || 1200,
-        },
-      });
+      applyPlayerDetails(players);
     });
 
     socket.current.on("move", ({ move, san }) => {
-      safeGameMutate((gameInstance) => {
-        gameInstance.move(move);
-      });
+      setDisconnectCountdown(null);
+      const incomingMoveKey = getMoveKey(move);
+      if (pendingMoveRef.current?.key === incomingMoveKey) {
+        clearTimeout(pendingMoveRef.current.rollbackTimer);
+        pendingMoveRef.current = null;
+      } else {
+        safeGameMutate((gameInstance) => {
+          gameInstance.move(move);
+        });
+      }
       
       // Only update history when receiving moves from server
       // This ensures both clients have the same history
       setHistory((prevHistory) => [...prevHistory, san]);
-      
-      // Check for game ending conditions after receiving a move
-      checkGameEndingConditions();
     });
 
     socket.current.on("playerResigned", ({ winner }) => {
@@ -234,7 +279,17 @@ function ChessBoard() {
     });
 
     socket.current.on("playerDisconnected", ({ winner }) => {
+      setDisconnectCountdown(null);
       handleGameOver(winner, "Disconnection");
+    });
+
+    socket.current.on("opponentDisconnectPending", ({ graceSeconds }) => {
+      setDisconnectCountdown(graceSeconds || 10);
+      setConnectionStatus("Opponent disconnected. Waiting for reconnection...");
+    });
+
+    socket.current.on("gameSaved", () => {
+      setIsGameSaved(true);
     });
 
     // Handle draw request
@@ -267,7 +322,19 @@ function ChessBoard() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       socket.current.disconnect();
     };
-  }, [userId]);
+  }, [userId, isCoachingMode, coachingCoachId, coachingStudentId, navigate, role]);
+
+  useEffect(() => {
+    if (disconnectCountdown === null || disconnectCountdown <= 0) return undefined;
+
+    const timer = setTimeout(() => {
+      setDisconnectCountdown((current) => (
+        current === null ? null : Math.max(0, current - 1)
+      ));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [disconnectCountdown]);
 
   // Function to check for game ending conditions
   function checkGameEndingConditions() {
@@ -356,13 +423,14 @@ function ChessBoard() {
     }
   }
 
-  // Handle game over logic with option to skip DB save
-  function handleGameOver(winnerColor, reason, skipDbSave = false) {
+  // Handle game over UI state. The server is the only source that saves results.
+  function handleGameOver(winnerColor, reason) {
     // Set UI state
     setWinner(winnerColor);
     setGameEndReason(reason);
     setGameOver(true);
     setIsConnected(false);
+    setConnectionStatus("Game over");
     
     // Calculate ELO change for display purposes
     if (winnerColor === "Draw") {
@@ -376,39 +444,6 @@ function ChessBoard() {
     
     // Show ELO animation
     setShowEloAnimation(true);
-    
-    // Only save to DB if not skipped (will be handled by server instead)
-    if (!skipDbSave) {
-      // Extract moves directly from the game object, not from the React state
-      // This ensures we get the full move history
-      const moveHistory = game.history({verbose: false});
-      const whiteMoves = moveHistory.filter((_, idx) => idx % 2 === 0);
-      const blackMoves = moveHistory.filter((_, idx) => idx % 2 !== 0);
-      
-      const playerWhite = players.white.userId;
-      const playerBlack = players.black.userId;
-
-      const gameResult = {
-        playerWhite,
-        playerBlack,
-        moves: {
-          whiteMoves,
-          blackMoves,
-        },
-        winner: winnerColor,
-        additionalAttributes: {
-          duration: Math.floor(performance.now() / 1000),
-          reason: reason
-        },
-      };
-
-      console.log("Saving game result with move history and reason:", gameResult);
-
-      axios
-        .post(`${chessMastersBackend}/game/saveGameResult`, gameResult)
-        .then(() => console.log("Game result saved successfully"))
-        .catch((err) => console.error("Error saving game result:", err));
-    }
   }
 
   function handleResign() {
@@ -500,7 +535,7 @@ function ChessBoard() {
 
   // Move handling functions
   function onDrop(sourceSquare, targetSquare) {
-    makeMove(sourceSquare, targetSquare);
+    return makeMove(sourceSquare, targetSquare);
   }
 
   function onSquareClick(square) {
@@ -536,8 +571,8 @@ function ChessBoard() {
     console.log('sourceSquare', sourceSquare)
     console.log('targetSquare', targetSquare)
     console.log('game color', game.turn())
-    if (game.turn() !== color) return;
-    if (gameOver) return;
+    if (game.turn() !== color) return false;
+    if (gameOver) return false;
 
     const move = {
       from: sourceSquare,
@@ -545,16 +580,37 @@ function ChessBoard() {
       promotion: "q",
     };
 
-    const result = game.move(move);
+    const previousFen = game.fen();
+    const preview = new Chess(game.fen());
+    const result = preview.move(move);
     console.log('result', result)
-    if (result === null) return;
+    if (result === null) return false;
 
-    // Only emit move to server but DON'T update history locally
-    // Let the server broadcast the move to all clients, including the sender
-    socket.current.emit("move", { move, room });
+    const moveKey = getMoveKey(move);
+    const rollbackMove = (message = "Move was not accepted by the server.") => {
+      if (pendingMoveRef.current?.key !== moveKey) return;
+      clearTimeout(pendingMoveRef.current.rollbackTimer);
+      pendingMoveRef.current = null;
+      setGame(new Chess(previousFen));
+      console.error(message);
+    };
 
-    // Check for game ending conditions after making a move
-    checkGameEndingConditions();
+    pendingMoveRef.current = {
+      key: moveKey,
+      rollbackTimer: setTimeout(() => rollbackMove("Move confirmation timed out."), 3000),
+    };
+    setGame(preview);
+    socket.current.timeout(2500).emit("move", { move, room }, (error, response) => {
+      if (error) {
+        rollbackMove("Move request timed out.");
+        return;
+      }
+
+      if (!response?.ok) {
+        rollbackMove(response?.message || "Move was rejected by the server.");
+      }
+    });
+    return true;
   }
 
   // Custom square styling
@@ -573,6 +629,7 @@ function ChessBoard() {
   // Restart game function to reuse in both button click and keyboard handler
   const restartGame = () => {
     setGame(new Chess());
+    pendingMoveRef.current = null;
     setHistory([]);
     setWinner(null);
     setGameOver(false);
@@ -637,55 +694,12 @@ function ChessBoard() {
       }
     };
     
-    // Add a completely separate handler for the 'unload' event as a fallback
-    const handleUnload = () => {
-      if (isConnected && !gameOver) {
-        // If the user is still refreshing, treat it as a resignation
-        const winnerColor = color === "w" ? "Black" : "White";
-        
-        // Make sure to include move history when resigning due to page refresh
-        const moveHistory = game.history({verbose: false});
-        const whiteMoves = moveHistory.filter((_, idx) => idx % 2 === 0);
-        const blackMoves = moveHistory.filter((_, idx) => idx % 2 !== 0);
-        
-        // Use a synchronous request to ensure it completes before page unload
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${chessMastersBackend}/game/saveGameResult`, false); // false makes it synchronous
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({
-          playerWhite: players.white.userId,
-          playerBlack: players.black.userId,
-          moves: {
-            whiteMoves,
-            blackMoves
-          },
-          winner: winnerColor,
-          additionalAttributes: {
-            duration: Math.floor(performance.now() / 1000),
-            reason: 'Disconnection' 
-          }
-        }));
-        
-        // Still emit event to socket (may not complete)
-        socket.current.emit("playerResigned", { 
-          winner: winnerColor, 
-          room,
-          moves: {
-            whiteMoves,
-            blackMoves
-          }
-        });
-      }
-    };
-    
     window.addEventListener('beforeunload', handleBeforeUnload, { capture: true });
-    window.addEventListener('unload', handleUnload);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload, { capture: true });
-      window.removeEventListener('unload', handleUnload);
     };
-  }, [isConnected, gameOver, color, room, game, players]);
+  }, [isConnected, gameOver]);
 
   // Add a function to exit fullscreen when game is over
   useEffect(() => {
@@ -697,35 +711,45 @@ function ChessBoard() {
   // Loading state
   if (!color || (!isConnected && !gameOver)) {
     return (
-      <div ref={fullscreenContainerRef} className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 p-4">
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl p-8 text-center">
-          <div className="animate-spin mb-6 mx-auto w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
-          <div className="text-xl md:text-2xl font-bold text-indigo-800">
-            Waiting for an opponent...
+      <div ref={fullscreenContainerRef} className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt to-black p-4">
+        <div className="bg-brand-surface/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 text-center">
+          <div className="animate-spin mb-6 mx-auto w-12 h-12 border-4 border-brand-accent border-t-transparent rounded-full"></div>
+          <div className="text-xl md:text-2xl font-bold text-brand-ink">
+            {connectionStatus}
           </div>
+          {disconnectCountdown !== null && (
+            <p className="mt-3 text-sm text-brand-muted">
+              Resolving in {disconnectCountdown}s
+            </p>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={fullscreenContainerRef} className="flex flex-col lg:flex-row items-start justify-center min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 p-3 sm:p-6 gap-6 lg:gap-8 overflow-auto">
+    <div ref={fullscreenContainerRef} className="flex flex-col lg:flex-row items-start justify-center min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt to-black p-3 sm:p-6 gap-6 lg:gap-8 overflow-auto">
       <div className="w-full lg:w-auto flex flex-col items-center">
         <div 
           ref={containerRef}
-          className="w-full lg:w-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out"
+          className="w-full lg:w-auto bg-brand-surface/95 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out"
           style={{ maxWidth: `${boardWidth}px` }}
         >
-          <div className="flex justify-between items-center px-4 py-3 bg-indigo-600 text-white">
+          <div className="flex justify-between items-center px-4 py-3 bg-brand-surfaceAlt text-white">
             <div className="text-base sm:text-lg font-medium">
               {color === "w" ? players.black.username : players.white.username}
-              <span className="ml-2 text-sm bg-indigo-800 px-2 py-0.5 rounded-full">
+              <span className="ml-2 text-sm bg-brand-action px-2 py-0.5 rounded-full">
                 ELO: {color === "w" ? players.black.elo : players.white.elo}
               </span>
             </div>
           </div>
           
           <div className="relative">
+            {disconnectCountdown !== null && !gameOver && (
+              <div className="absolute left-1/2 top-3 z-40 -translate-x-1/2 rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black shadow-lg">
+                Opponent disconnected. Waiting {disconnectCountdown}s...
+              </div>
+            )}
             <Chessboard
               position={game.fen()}
               onPieceDrop={onDrop}
@@ -736,18 +760,21 @@ function ChessBoard() {
             />
             {gameOver && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm text-white z-50">
-                <div className="text-center space-y-4 p-8 bg-gradient-to-br from-indigo-900 to-purple-900 rounded-xl backdrop-blur-sm animate-fade-in-down max-w-sm mx-auto shadow-2xl border border-indigo-500/30">
+                <div className="text-center space-y-4 p-8 bg-gradient-to-br from-brand-surfaceAlt to-brand-surface rounded-xl backdrop-blur-sm animate-fade-in-down max-w-sm mx-auto shadow-2xl border border-brand-accent/30">
                   <div className="text-3xl sm:text-4xl font-bold text-white mb-2">
                     Game Over
                   </div>
-                  <div className="text-xl text-indigo-200 font-medium">
+                  <div className="text-xl text-brand-muted font-medium">
                     {winner === "Draw" ? "Result: Draw" : 
                       (winner === (color === "w" ? "White" : "Black") ? 
                         "Result: You Won" : 
                         "Result: You Lost")}
                   </div>
-                  <div className="text-lg text-indigo-300 font-medium">
+                  <div className="text-lg text-brand-accent font-medium">
                     {gameEndReason && `By ${gameEndReason}`}
+                  </div>
+                  <div className={`text-sm font-medium ${isGameSaved ? "text-green-300" : "text-brand-muted"}`}>
+                    {isGameSaved ? "Game saved" : "Saving game..."}
                   </div>
                   
                   {/* Enhanced ELO Change Animation */}
@@ -783,7 +810,7 @@ function ChessBoard() {
                   <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
                     <button
                       onClick={restartGame}
-                      className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all text-white font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      className="px-5 py-2.5 bg-indigo-500 hover:bg-brand-surfaceAlt rounded-lg transition-all text-white font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
                       <svg xmlns="www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -806,7 +833,7 @@ function ChessBoard() {
                           console.log("Error navigating, found no proper role");                          
                         }
                       }}
-                      className="px-5 py-2.5 bg-purple-500 hover:bg-purple-600 rounded-lg transition-all text-white font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      className="px-5 py-2.5 bg-brand-success hover:bg-green-600 rounded-lg transition-all text-white font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
                       <svg xmlns="www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -821,18 +848,18 @@ function ChessBoard() {
             {/* Resignation confirmation modal */}
             {showResignConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
-                <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl p-6 max-w-xs w-full shadow-2xl border border-indigo-100 animate-fade-in">
+                <div className="bg-gradient-to-br from-brand-surface to-brand-surfaceAlt rounded-xl p-6 max-w-xs w-full shadow-2xl border border-brand-accent/30 animate-fade-in">
                   <div className="flex items-center mb-4 text-red-500">
                     <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <h3 className="text-xl font-bold text-gray-800">Confirm Resignation</h3>
+                    <h3 className="text-xl font-bold text-brand-ink">Confirm Resignation</h3>
                   </div>
-                  <p className="text-gray-600 mb-6">Are you sure you want to resign? This will count as a loss.</p>
+                  <p className="text-brand-muted mb-6">Are you sure you want to resign? This will count as a loss.</p>
                   <div className="flex justify-end space-x-3">
                     <button 
                       onClick={() => setShowResignConfirm(false)}
-                      className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 transition-colors shadow-sm hover:shadow"
+                      className="px-4 py-2 bg-brand-surfaceAlt hover:bg-brand-accentSoft rounded-lg text-brand-ink transition-colors shadow-sm hover:shadow"
                     >
                       Cancel
                     </button>
@@ -853,24 +880,24 @@ function ChessBoard() {
             {/* Draw confirmation modal */}
             {showDrawConfirm && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
-                <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl p-6 max-w-xs w-full shadow-2xl border border-blue-100 animate-fade-in">
-                  <div className="flex items-center mb-4 text-blue-500">
+                <div className="bg-gradient-to-br from-brand-surface to-brand-surfaceAlt rounded-xl p-6 max-w-xs w-full shadow-2xl border border-brand-accent/30 animate-fade-in">
+                  <div className="flex items-center mb-4 text-brand-accent">
                     <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <h3 className="text-xl font-bold text-gray-800">Draw Offer</h3>
+                    <h3 className="text-xl font-bold text-brand-ink">Draw Offer</h3>
                   </div>
-                  <p className="text-gray-600 mb-6">Your opponent has offered a draw. Do you accept?</p>
+                  <p className="text-brand-muted mb-6">Your opponent has offered a draw. Do you accept?</p>
                   <div className="flex justify-end space-x-3">
                     <button 
                       onClick={() => handleDrawResponse(false)}
-                      className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 transition-colors shadow-sm hover:shadow"
+                      className="px-4 py-2 bg-brand-surfaceAlt hover:bg-brand-accentSoft rounded-lg text-brand-ink transition-colors shadow-sm hover:shadow"
                     >
                       Decline
                     </button>
                     <button 
                       onClick={() => handleDrawResponse(true)}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors shadow-sm hover:shadow"
+                      className="px-4 py-2 bg-brand-action hover:bg-brand-actionHover rounded-lg text-white transition-colors shadow-sm hover:shadow"
                     >
                       Accept
                     </button>
@@ -881,7 +908,7 @@ function ChessBoard() {
             
             {/* Draw requested indicator */}
             {drawRequested && !showDrawConfirm && !gameOver && (
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-full text-sm shadow-lg animate-pulse z-40 flex items-center">
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-brand-action to-brand-accentHover text-white px-4 py-2 rounded-full text-sm shadow-lg animate-pulse z-40 flex items-center">
                 <svg xmlns="www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -890,10 +917,10 @@ function ChessBoard() {
             )}
           </div>
           
-          <div className="flex justify-between items-center px-4 py-3 bg-indigo-600 text-white">
+          <div className="flex justify-between items-center px-4 py-3 bg-brand-surfaceAlt text-white">
             <div className="text-base sm:text-lg font-medium">
               {color === "w" ? players.white.username : players.black.username} (You)
-              <span className="ml-2 text-sm bg-indigo-800 px-2 py-0.5 rounded-full">
+              <span className="ml-2 text-sm bg-brand-action px-2 py-0.5 rounded-full">
                 ELO: {color === "w" ? players.white.elo : players.black.elo}
               </span>
             </div>
@@ -903,20 +930,30 @@ function ChessBoard() {
 
       {/* Loading state overlay */}
       {(!color || (!isConnected && !gameOver)) && (
-        <div className="fixed inset-0 flex items-center justify-center bg-indigo-900/80 backdrop-blur-sm z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md mx-auto animate-fade-in">
-            <div className="animate-spin mb-6 mx-auto w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
-            <div className="text-2xl md:text-3xl font-bold text-indigo-800 mb-2">
-              Finding an opponent...
+        <div className="fixed inset-0 flex items-center justify-center bg-brand-pageAlt/90 backdrop-blur-sm z-50">
+          <div className="bg-brand-surface rounded-xl shadow-2xl p-8 text-center max-w-md mx-auto animate-fade-in">
+            <div className="animate-spin mb-6 mx-auto w-16 h-16 border-4 border-brand-accent border-t-transparent rounded-full"></div>
+            <div className="text-2xl md:text-3xl font-bold text-brand-ink mb-2">
+              {connectionStatus}
             </div>
-            <p className="text-gray-600">Please wait while we match you with another player</p>
+            <p className="text-brand-muted">
+              {disconnectCountdown !== null
+                ? `Opponent has ${disconnectCountdown}s to reconnect`
+                : "Please wait while we prepare the board"}
+            </p>
           </div>
         </div>
       )}
 
       <div className="w-full lg:w-80 xl:w-96">
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl p-5 h-full max-h-[calc(100vh-3rem)] overflow-y-auto">
-          <h2 className="text-xl font-bold text-indigo-800 mb-4 border-b border-indigo-200 pb-2">Move History</h2>
+        <LiveCoachingCall
+          socket={socket.current}
+          room={room}
+          enabled={Boolean(room) && !gameOver}
+          isInitiator={role === "coach" || (!isCoachingMode && color === "w")}
+        />
+        <div className="bg-brand-surface/95 backdrop-blur-sm rounded-xl shadow-2xl p-5 h-full max-h-[calc(100vh-3rem)] overflow-y-auto">
+          <h2 className="text-xl font-bold text-brand-ink mb-4 border-b border-brand-accent/30 pb-2">Move History</h2>
           <MoveHistory 
             history={history} 
             onResign={() => setShowResignConfirm(true)}
@@ -929,18 +966,18 @@ function ChessBoard() {
       {/* Refresh confirmation modal */}
       {showRefreshConfirm && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
-          <div className="bg-gradient-to-br from-white to-red-50 rounded-xl p-6 max-w-xs w-full shadow-2xl border border-red-100 animate-fade-in">
+          <div className="bg-gradient-to-br from-brand-surface to-brand-surfaceAlt rounded-xl p-6 max-w-xs w-full shadow-2xl border border-red-100 animate-fade-in">
             <div className="flex items-center mb-4 text-red-500">
               <svg xmlns="www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <h3 className="text-xl font-bold text-gray-800">Page Refresh Warning</h3>
+              <h3 className="text-xl font-bold text-brand-ink">Page Refresh Warning</h3>
             </div>
-            <p className="text-gray-600 mb-6">Refreshing the page will count as resignation and you will lose the game. Do you want to resign?</p>
+            <p className="text-brand-muted mb-6">Refreshing the page will count as resignation and you will lose the game. Do you want to resign?</p>
             <div className="flex justify-end space-x-3">
               <button 
                 onClick={() => setShowRefreshConfirm(false)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 transition-colors shadow-sm hover:shadow"
+                className="px-4 py-2 bg-brand-surfaceAlt hover:bg-brand-accentSoft rounded-lg text-brand-ink transition-colors shadow-sm hover:shadow"
               >
                 Cancel
               </button>
@@ -967,7 +1004,7 @@ function ChessBoard() {
 
           action.catch((error) => console.error("Could not toggle fullscreen:", error));
         }}
-        className="fixed bottom-4 right-4 bg-indigo-600 text-white p-2 rounded-full shadow-lg z-10 hover:bg-indigo-700 transition-colors"
+        className="fixed bottom-4 right-4 bg-brand-surfaceAlt text-white p-2 rounded-full shadow-lg z-10 hover:bg-indigo-700 transition-colors"
         title={isFullscreen ? "Exit fullscreen mode" : "Enter fullscreen mode"}
       >
         {isFullscreen ? (
@@ -985,3 +1022,8 @@ function ChessBoard() {
 }
 
 export default ChessBoard;
+
+
+
+
+

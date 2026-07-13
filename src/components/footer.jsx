@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer = () => {
     return (
-        <footer className="bg-gradient-to-r from-[#012010] to-[#023020] text-[#E4EfE9] 
+        <footer className="bg-brand-action text-white 
                          py-4 sm:py-5 md:py-6">
             <div className="w-full min-h-[8vh] px-4 sm:px-6 lg:px-8 
                           flex flex-col sm:flex-row justify-between items-center 
@@ -15,14 +15,14 @@ const Footer = () => {
                                  rounded-full mr-2 sm:mr-3 md:mr-4
                                  transition-transform duration-300 hover:scale-110"
                     />
-                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-[#1BFFFF]
+                    <span className="text-lg sm:text-xl md:text-2xl font-bold text-white
                                    tracking-wide hover:text-opacity-80 transition-colors duration-300">
                         ChessMasters
                     </span>
                 </div>
                 <div className="text-xs sm:text-sm md:text-base text-center sm:text-right
                               opacity-90 hover:opacity-100 transition-opacity duration-300">
-                    © {new Date().getFullYear()} ChessMasters. All rights reserved.
+                    (c) {new Date().getFullYear()} ChessMasters. All rights reserved.
                 </div>
             </div>
         </footer>
@@ -30,3 +30,8 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+
+
+

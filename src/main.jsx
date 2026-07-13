@@ -5,7 +5,7 @@ import "./main.css";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import Greeting from "./components/Greetings.jsx";
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Link, useRouteError } from 'react-router-dom';
 const HomePage = lazy(() => import("./components/index.jsx"));
 const CoachDashboard = lazy(() => import("./components/CoachDashboard.jsx"));
 const Coachprofile = lazy(() => import("./components/Coachprofile.jsx"));
@@ -27,6 +27,10 @@ const VideoUpdate = lazy(() => import("./components/VideoUpdate.jsx"));
 const UpdateProfile = lazy(() => import("./components/UpdateProfile.jsx"));
 const ViewGame = lazy(() => import("./components/ViewGame.jsx"));
 const Rules = lazy(() => import("./components/rules.jsx"));
+const Notifications = lazy(() => import("./components/Notifications.jsx"));
+const RequestPasswordReset = lazy(() => import("./components/RequestPasswordReset.jsx"));
+const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
+const VerifyEmail = lazy(() => import("./components/VerifyEmail.jsx"));
 
 // Set up axios defaults
 axios.defaults.withCredentials = true;
@@ -78,8 +82,28 @@ axios.interceptors.response.use(
 // );
 
 const withLoading = (component) => <Suspense fallback={<div>Loading…</div>}>{component}</Suspense>;
+const RouteError = () => {
+    const error = useRouteError();
+    console.error('Route error:', error);
+
+    return (
+        <main className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt px-4 py-12 text-brand-ink">
+            <section className="mx-auto max-w-lg rounded-xl border border-brand-accent/30 bg-brand-surface p-6 text-center shadow-xl">
+                <h1 className="text-2xl font-bold">Something went wrong</h1>
+                <p className="mt-3 text-brand-muted">Please refresh the page or return home.</p>
+                <Link
+                    to="/Index?role=player"
+                    className="mt-6 inline-flex rounded-lg bg-brand-action px-5 py-3 font-semibold text-white transition hover:bg-brand-actionHover"
+                >
+                    Home
+                </Link>
+            </section>
+        </main>
+    );
+};
+
 const router = createBrowserRouter([
-        { path: '/', element: <Greeting onLoginSuccess={() => {}} /> },
+        { path: '/', element: <Greeting onLoginSuccess={() => {}} />, errorElement: <RouteError /> },
         { path: '/login', element: <Navigate to="/" replace /> },
         { path: '/AdminDashboard', element: withLoading(<Dashboard />) },
         { path: '/coach/:coachId/CoachDashboard', element: withLoading(<CoachDashboard />) },
@@ -105,6 +129,10 @@ const router = createBrowserRouter([
         { path: '/update-profile', element: withLoading(<UpdateProfile />) },
         { path: '/ViewGame/:gameId', element: withLoading(<ViewGame />) },
         { path: '/rules', element: withLoading(<Rules />) },
+        { path: '/notifications', element: withLoading(<Notifications />) },
+        { path: '/forgot-password', element: withLoading(<RequestPasswordReset />) },
+        { path: '/reset-password', element: withLoading(<ResetPassword />) },
+        { path: '/verify-email', element: withLoading(<VerifyEmail />) },
         // { path: '*', element: <Navigate to="/404" /> }, // Handle undefined routes
     ]);
 

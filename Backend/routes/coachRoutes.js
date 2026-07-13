@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { body } from "express-validator";
 import {
   getCoachDetails,
   getAllCoaches,
@@ -18,6 +19,7 @@ import {
   getCoachVideos, 
   getCoachArticles,
   updateCoachProfile,
+  changeCoachPassword,
   deleteCoachAccount,
   updateArticle,
   updateVideo,
@@ -27,10 +29,28 @@ import {
 import { isCoach } from "../middlewares/isCoach.js"; 
 import { authMiddleware } from "../middlewares/authMiddlerware.js";
 import { getvideos } from "../controllers/adminControllers.js";
+import { createRateLimiter } from "../middlewares/rateLimit.js";
+import { validateRequest } from "../middlewares/validateRequest.js";
 //import { getCoachContent, getCoachVideos, getCoachArticles } from "../controllers/coachControllers.js";
 
 
 const router = Router();
+const coachWriteRateLimit = createRateLimiter({ windowMs: 60 * 1000, max: 30, keyPrefix: "coach-write" });
+const uploadRateLimit = createRateLimiter({ windowMs: 60 * 1000, max: 10, keyPrefix: "coach-upload" });
+const contentValidation = [
+  body("title").trim().isLength({ min: 2, max: 160 }).withMessage("Title must be 2-160 characters"),
+  body("content").optional().trim().isLength({ max: 10000 }).withMessage("Content is too long"),
+];
+const profileValidation = [
+  body("UserName").optional().trim().isLength({ min: 3, max: 40 }).withMessage("Username must be 3-40 characters"),
+  body("Email").optional().isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("Password").optional().isLength({ min: 6, max: 128 }).withMessage("Password must be 6-128 characters"),
+];
+const passwordValidation = [
+  body("currentPassword").isLength({ min: 1, max: 128 }).withMessage("Current password is required"),
+  body("newPassword").isLength({ min: 6, max: 128 }).withMessage("New password must be 6-128 characters"),
+  body("confirmPassword").isLength({ min: 6, max: 128 }).withMessage("Confirm password is required"),
+];
 
 // Specific routes first
 // Specific routes first
@@ -288,7 +308,7 @@ router.get("/articles", isCoach, getCoachArticles);
  *       500:
  *         description: Server error
  */
-router.get("/content/:coachId", getCoachContent);
+router.get("/content/:coachId", authMiddleware, getCoachContent);
 /**
  * @openapi
  * /api/coach/subscribedPlayers/{coachId}:
@@ -411,7 +431,7 @@ router.get("/subscribedPlayers/:coachId", isCoach, getSubscribedPlayers);
  *       500:
  *         description: Server error
  */
-router.post("/addArticle", isCoach, addArticle);
+router.post("/addArticle", uploadRateLimit, isCoach, addArticle);
 /**
  * @openapi
  * /api/coach/addVideo:
@@ -490,7 +510,7 @@ router.post("/addArticle", isCoach, addArticle);
  *       500:
  *         description: Server error
  */
-router.post("/addVideo", isCoach, addVideo);
+router.post("/addVideo", uploadRateLimit, isCoach, addVideo);
 /**
  * @openapi
  * /api/coach/completeProfile:
@@ -846,7 +866,8 @@ router.get("/revenue/:coachId", isCoach, getCoachRevenue);
  *       500:
  *         description: Server error
  */
-router.put("/update-profile", isCoach, updateCoachProfile);
+router.put("/update-profile", coachWriteRateLimit, isCoach, profileValidation, validateRequest, updateCoachProfile);
+router.put("/change-password", coachWriteRateLimit, isCoach, passwordValidation, validateRequest, changeCoachPassword);
 /**
  * @openapi
  * /api/coach/delete-account:
@@ -954,7 +975,7 @@ router.delete("/delete-account", isCoach, deleteCoachAccount);
  *       500:
  *         description: Server error
  */
-router.put("/article/:id", isCoach, updateArticle);
+router.put("/article/:id", uploadRateLimit, isCoach, contentValidation, validateRequest, updateArticle);
 /**
  * @openapi
  * /api/coach/video/{id}:
@@ -1039,7 +1060,7 @@ router.put("/article/:id", isCoach, updateArticle);
  *       500:
  *         description: Server error
  */
-router.put("/video/:id", isCoach, updateVideo);
+router.put("/video/:id", uploadRateLimit, isCoach, contentValidation, validateRequest, updateVideo);
 /**
  * @openapi
  * /api/coach/article/{id}:

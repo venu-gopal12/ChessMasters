@@ -139,7 +139,7 @@ const SubscriptionChart = () => {
             size: window.innerWidth < 640 ? 12 : 14,
             weight: 'bold',
           },
-          color: '#4a5568',
+          color: '#D7E0DC',
           padding: window.innerWidth < 640 ? 10 : 20,
         },
       },
@@ -150,7 +150,7 @@ const SubscriptionChart = () => {
           size: window.innerWidth < 640 ? 16 : 20,
           weight: 'bold',
         },
-        color: '#2d3748',
+        color: '#F8FAFC',
         padding: {
           top: window.innerWidth < 640 ? 5 : 10,
           bottom: window.innerWidth < 640 ? 15 : 30
@@ -160,10 +160,10 @@ const SubscriptionChart = () => {
     scales: {
       x: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(215, 224, 220, 0.18)',
         },
         ticks: {
-          color: '#4a5568',
+          color: '#D7E0DC',
           font: {
             size: window.innerWidth < 640 ? 10 : 12,
           },
@@ -171,10 +171,10 @@ const SubscriptionChart = () => {
       },
       y: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(215, 224, 220, 0.18)',
         },
         ticks: {
-          color: '#4a5568',
+          color: '#D7E0DC',
           font: {
             size: window.innerWidth < 640 ? 10 : 12,
           },
@@ -190,17 +190,17 @@ const SubscriptionChart = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 p-4 flex items-center justify-center">
-        <div className="text-xl font-semibold text-gray-700">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt p-4 flex items-center justify-center">
+        <div className="text-xl font-semibold text-brand-muted">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 p-2 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg lg:shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-brand-page to-brand-pageAlt p-2 sm:p-4 md:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg lg:shadow-xl overflow-hidden border border-brand-accent/30">
         <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-brand-ink mb-3 sm:mb-4 md:mb-6">
             Subscription Analysis
           </h1>
           
@@ -213,7 +213,7 @@ const SubscriptionChart = () => {
           <div className="mb-3 sm:mb-4 md:mb-6">
             <label 
               htmlFor="year" 
-              className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2"
+              className="block text-xs sm:text-sm font-medium text-brand-muted mb-1 sm:mb-2"
             >
               Select Year:
             </label>
@@ -222,9 +222,9 @@ const SubscriptionChart = () => {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="block w-full pl-2 sm:pl-3 pr-8 sm:pr-10 py-1.5 sm:py-2 text-sm sm:text-base 
-                border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 
-                focus:border-indigo-500 rounded-md transition-all duration-200
-                bg-white shadow-sm"
+                border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-accent 
+                focus:border-brand-accent rounded-md transition-all duration-200
+                bg-white text-gray-800 shadow-sm"
             >
               {availableYears.length > 0 ? (
                 availableYears.map(year => (
@@ -245,12 +245,12 @@ const SubscriptionChart = () => {
               />
             </div>
           ) : (
-            <div className="text-center py-10 text-gray-600">
+            <div className="text-center py-10 text-brand-muted">
               No subscription data available to display
             </div>
           )}
 
-          <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600">
+          <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 text-xs sm:text-sm text-brand-muted">
             <p className="hidden sm:block">
               * Hover over the bars to see detailed information
             </p>
@@ -265,6 +265,13 @@ const SubscriptionChart = () => {
 };
 
 export default SubscriptionChart;
+
+
+
+
+
+
+
 
 
 
