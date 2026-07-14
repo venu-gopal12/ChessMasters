@@ -203,19 +203,19 @@ const Dashboard = () => {
 
   const StatCard = ({ title, count, icon: Icon, gradient, onClick }) => (
     <div
-      className={`${gradient} rounded-xl shadow-xl p-4 md:p-6 h-[150px] 
-        hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 
-        hover:scale-105 relative overflow-hidden backdrop-blur-sm ${onClick ? 'cursor-pointer' : ''}
+      className={`${gradient} rounded-lg shadow-lg p-4 h-[112px] 
+        hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 
+        hover:scale-[1.02] relative overflow-hidden backdrop-blur-sm ${onClick ? 'cursor-pointer' : ''}
         before:content-[''] before:absolute before:top-0 before:left-0 
         before:w-full before:h-full before:bg-white/10 before:opacity-0 
         hover:before:opacity-100 before:transition-opacity`}
       onClick={onClick}
     >
-      <div className="flex justify-between items-center mb-4 relative z-10">
-        <h3 className="text-lg md:text-xl font-semibold text-white drop-shadow-lg">{title}</h3>
-        <Icon className="text-2xl md:text-3xl text-white opacity-80 animate-pulse" />
+      <div className="flex justify-between items-center mb-3 relative z-10">
+        <h3 className="text-sm md:text-base font-semibold text-white drop-shadow-lg">{title}</h3>
+        <Icon className="text-xl md:text-2xl text-white opacity-80 animate-pulse" />
       </div>
-      <h1 className="text-xl md:text-2xl font-bold text-white tracking-wider drop-shadow-lg relative z-10">
+      <h1 className="text-lg md:text-xl font-bold text-white drop-shadow-lg relative z-10 leading-snug">
         {count}
       </h1>
     </div>
@@ -273,11 +273,11 @@ const Dashboard = () => {
     }, [data, title]);
 
     return (
-      <div className={`${gradient} backdrop-blur-md rounded-xl shadow-xl p-6 md:p-8 
-        border border-white/20 min-h-[300px] hover:shadow-2xl 
-        transition-all duration-500 transform hover:scale-[1.01]`}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl md:text-2xl font-bold text-brand-ink tracking-wide">{title}</h3>
+      <div className={`${gradient} backdrop-blur-md rounded-lg shadow-lg p-4 md:p-5 
+        border border-white/20 min-h-[240px] hover:shadow-xl 
+        transition-all duration-300 transform hover:scale-[1.005]`}>
+        <div className="flex justify-between items-center mb-4 gap-3">
+          <h3 className="text-lg md:text-xl font-bold text-brand-ink tracking-wide">{title}</h3>
             
           {/* Display legend for Players and Coaches */}
           {(title === 'Players' || title === 'Coaches') && (
@@ -288,13 +288,13 @@ const Dashboard = () => {
         </div>
         
         {/* Search input */}
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           <input
             type="text"
             placeholder={`Search ${title}...`}
             value={localSearchTerm}
             onChange={handleLocalSearch}
-            className="w-full p-4 border rounded-xl focus:ring-4 
+            className="w-full p-3 text-sm border rounded-lg focus:ring-2 
               focus:outline-none bg-white/60 backdrop-blur-md shadow-inner
               transition-all duration-300 hover:bg-white/80 
               placeholder-gray-500 text-gray-700"
@@ -310,12 +310,12 @@ const Dashboard = () => {
         </div>
         
         {/* Display count of filtered items */}
-        <p className="text-sm text-brand-muted mb-4">
+        <p className="text-xs text-brand-muted mb-3">
           Showing {filteredItems.length} of {data.length} {title.toLowerCase()}
         </p>
         
         {/* List of items */}
-        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
           {filteredItems.length > 0 ? (
             filteredItems.map(item => {
               // Determine what to render based on item type
@@ -337,13 +337,13 @@ const Dashboard = () => {
               return (
                 <div key={item._id}
                   className="flex flex-col md:flex-row justify-between items-start 
-                    md:items-center p-5 bg-brand-surfaceAlt/80 hover:bg-brand-surfaceAlt rounded-xl 
+                    md:items-center p-3 bg-brand-surfaceAlt/80 hover:bg-brand-surfaceAlt rounded-lg 
                     border border-brand-accent/25 hover:border-brand-accent/50 transition-all duration-300 
                     hover:shadow-lg group backdrop-blur-sm"
                 >
                   {title === 'Players' ? (
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-                      <span className="text-base md:text-lg font-semibold text-brand-ink">
+                      <span className="text-sm md:text-base font-semibold text-brand-ink">
                         {username}
                       </span>
                       <div className={`${getBadgeColor(elo)} px-3 py-1 rounded-full text-xs md:text-sm font-medium shadow-sm`}>
@@ -352,7 +352,7 @@ const Dashboard = () => {
                     </div>
                   ) : title === 'Coaches' ? (
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 flex-wrap">
-                      <span className="text-base md:text-lg font-semibold text-brand-ink">
+                      <span className="text-sm md:text-base font-semibold text-brand-ink">
                         {username}
                       </span>
                       <div className="flex flex-wrap gap-2">
@@ -373,8 +373,8 @@ const Dashboard = () => {
                   <div className="flex gap-2 mt-3 md:mt-0">
                     <button
                       onClick={() => onDelete(item._id)}
-                      className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white 
-                        rounded-lg transition-all duration-300 text-sm md:text-base
+                      className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white 
+                        rounded-md transition-all duration-300 text-xs md:text-sm
                         shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
                     >
                       Delete
@@ -382,8 +382,8 @@ const Dashboard = () => {
                     {(title === 'Players' || title === 'Coaches') && (
                       <button
                         onClick={() => handleViewStats(item._id, title)}
-                        className="px-5 py-2 bg-brand-action hover:bg-brand-actionHover text-white 
-                          rounded-lg transition-all duration-300 text-sm md:text-base
+                        className="px-3 py-1.5 bg-brand-action hover:bg-brand-actionHover text-white 
+                          rounded-md transition-all duration-300 text-xs md:text-sm
                           shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
                       >
                         Stats
@@ -562,13 +562,12 @@ const Dashboard = () => {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-brand-page via-brand-pageAlt 
-      to-black p-4 md:p-8 animate-gradient-x">
+      to-black p-3 md:p-5 animate-gradient-x">
       <AdminNav />
-      <div className="mb-8 md:mb-16 pt-6 md:pt-8">
-        <h3 className="text-2xl md:text-4xl font-bold bg-gradient-to-r 
+      <div className="mb-5 md:mb-8 pt-4 md:pt-5">
+        <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r 
           from-brand-ink via-brand-muted to-brand-accent bg-clip-text 
-          text-transparent tracking-tight hover:tracking-wide 
-          transition-all duration-300">
+          text-transparent tracking-tight">
           OVERVIEW
         </h3>
       </div>
@@ -580,7 +579,7 @@ const Dashboard = () => {
           onSubmit={handleFormSubmit}
         />
       )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <StatCard
               title="Users"
               count={`${players.length} Players, ${coaches.length} Coaches`}
@@ -622,27 +621,27 @@ const Dashboard = () => {
               gradient="bg-gradient-to-br from-brand-surfaceAlt via-brand-surface to-brand-danger"
             />
           </div>
-          <div className="mt-8 bg-gradient-to-r from-brand-surface to-brand-surfaceAlt p-4 rounded-xl shadow-md">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="mt-6 bg-gradient-to-r from-brand-surface to-brand-surfaceAlt p-4 rounded-lg shadow-md">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-3">
               <div>
-                <h3 className="text-xl font-bold text-brand-ink">Danger Zone</h3>
-                <p className="text-brand-muted">Permanently delete all games from the database.</p>
+                <h3 className="text-lg font-bold text-brand-ink">Danger Zone</h3>
+                <p className="text-sm text-brand-muted">Permanently delete all games from the database.</p>
               </div>
               <button
                 onClick={() => setShowDeleteConfirmation(true)}
-                className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 
-                          text-white font-bold rounded-lg shadow-lg transition-all duration-300 
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 
+                          text-white text-sm font-bold rounded-md shadow-lg transition-all duration-300 
                           hover:from-red-600 hover:to-pink-700 focus:outline-none 
-                          transform hover:scale-105 flex items-center justify-center whitespace-nowrap"
+                          transform hover:scale-[1.02] flex items-center justify-center whitespace-nowrap"
               >
                 <span className="mr-2">Delete All Games</span>
-                <svg xmlns="www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
           </div>
-          <div className="mt-8 md:mt-12 space-y-8">
+          <div className="mt-6 md:mt-8 space-y-5">
             <ContentSection
               title="Articles"
               data={articles}
@@ -676,19 +675,19 @@ const Dashboard = () => {
           </div>
         </>
       ) : (
-        <div className="bg-brand-surface rounded-xl shadow-xl text-brand-ink p-6 md:p-8">
+        <div className="bg-brand-surface rounded-lg shadow-xl text-brand-ink p-4 md:p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl md:text-3xl font-bold">{expandedStat} Over the Last 7 Days</h3>
+            <h3 className="text-xl md:text-2xl font-bold">{expandedStat} Over the Last 7 Days</h3>
             <button
               onClick={closeGraph}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white 
-                rounded-lg transition-all duration-300 text-sm md:text-base
+              className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white 
+                rounded-md transition-all duration-300 text-xs md:text-sm
                 shadow-md hover:shadow-xl"
             >
               Close
             </button>
           </div>
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={320}>
             <LineChart
               data={graphData}
               margin={{
@@ -707,8 +706,8 @@ const Dashboard = () => {
       )}
       {showStats.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-brand-surface rounded-lg p-6 w-full max-w-md text-brand-ink">
-            <h2 className="text-xl font-bold mb-4">{showStats.title === 'Players' ? 'Player Stats' : 'Coach Stats'}</h2>
+          <div className="bg-brand-surface rounded-lg p-5 w-full max-w-md text-brand-ink text-sm">
+            <h2 className="text-lg font-bold mb-4">{showStats.title === 'Players' ? 'Player Stats' : 'Coach Stats'}</h2>
             <p>Total Games Played: {stats.totalGamesPlayed}</p>
             <p>Games Won: {stats.gamesWon}</p>
             <p>Games Lost: {stats.gamesLost}</p>
@@ -716,7 +715,7 @@ const Dashboard = () => {
             <p>ELO: {stats.elo}</p>
             <button
               onClick={() => setShowStats({ show: false, title: '' })}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+              className="mt-4 px-3 py-1.5 bg-red-500 text-white rounded-md"
             >
               Close
             </button>
@@ -725,8 +724,8 @@ const Dashboard = () => {
       )}
       {showDeleteConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-brand-surface rounded-lg p-6 w-full max-w-md shadow-2xl text-brand-ink transform transition-all">
-            <h2 className="text-xl font-bold mb-4 text-brand-ink">Delete All Games</h2>
+          <div className="bg-brand-surface rounded-lg p-5 w-full max-w-md shadow-2xl text-brand-ink transform transition-all">
+            <h2 className="text-lg font-bold mb-4 text-brand-ink">Delete All Games</h2>
             {deleteAllStatus.isDeleting ? (
               <div className="text-center py-4">
                 <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-brand-accent" role="status">
