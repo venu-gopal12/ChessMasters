@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { chessMastersBackend } from "../../config.js";
@@ -147,14 +147,6 @@ function LoginForm({ onLoginSuccess }) {
             >
               {showPassword ? <EyeOff size={22} strokeWidth={2.5} /> : <Eye size={22} strokeWidth={2.5} />}
             </button>
-          </div>
-          <div className="mt-2 text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm font-semibold text-brand-accent underline-offset-4 transition hover:text-brand-ink hover:underline"
-            >
-              Forgot password?
-            </Link>
           </div>
         </motion.div>
         <motion.button

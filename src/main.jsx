@@ -28,8 +28,6 @@ const UpdateProfile = lazy(() => import("./components/UpdateProfile.jsx"));
 const ViewGame = lazy(() => import("./components/ViewGame.jsx"));
 const Rules = lazy(() => import("./components/rules.jsx"));
 const Notifications = lazy(() => import("./components/Notifications.jsx"));
-const RequestPasswordReset = lazy(() => import("./components/RequestPasswordReset.jsx"));
-const ResetPassword = lazy(() => import("./components/ResetPassword.jsx"));
 const VerifyEmail = lazy(() => import("./components/VerifyEmail.jsx"));
 
 // Set up axios defaults
@@ -130,8 +128,8 @@ const router = createBrowserRouter([
         { path: '/ViewGame/:gameId', element: withLoading(<ViewGame />) },
         { path: '/rules', element: withLoading(<Rules />) },
         { path: '/notifications', element: withLoading(<Notifications />) },
-        { path: '/forgot-password', element: withLoading(<RequestPasswordReset />) },
-        { path: '/reset-password', element: withLoading(<ResetPassword />) },
+        { path: '/forgot-password', element: <Navigate to="/" replace /> },
+        { path: '/reset-password', element: <Navigate to="/" replace /> },
         { path: '/verify-email', element: withLoading(<VerifyEmail />) },
         // { path: '*', element: <Navigate to="/404" /> }, // Handle undefined routes
     ]);
