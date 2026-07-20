@@ -1,3 +1,4 @@
+// Purpose: Tailwind theme tokens and content scanning configuration.
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [

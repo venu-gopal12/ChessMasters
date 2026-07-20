@@ -1,9 +1,11 @@
+// Purpose: Express controller handlers for player API behavior.
 import UserModel  from "../models/userModel.js"; 
 import CoachDetails from "../models/CoachModel.js";
 import Article from "../models/articleModel.js";
 import Video from "../models/videoModel.js";
 import AdminRevenueModel from "../models/adminRevenueModel.js";
 import bcrypt from "bcrypt";
+import { refreshUserGameStats } from "../services/gameResultService.js";
 
 export const getPlayerDetails = async (req, res) => {
   try {
@@ -210,29 +212,16 @@ export const getPlayerGameStats = async (req, res) => {
       return res.status(403).json({ message: "You cannot view this player's private stats" });
     }
 
-    const player = await UserModel.findById(
-      playerId,
-      "gamesWon gamesLost gamesDraw elo eloHistory"
-    ).lean();
+    const player = await UserModel.findById(playerId, "_id").lean();
 
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const gamesWon = player.gamesWon || 0;
-    const gamesLost = player.gamesLost || 0;
-    const gamesDraw = player.gamesDraw || 0;
-    const totalGamesPlayed = gamesWon + gamesLost + gamesDraw;
+    const stats = await refreshUserGameStats(playerId);
 
     // Return the game stats
-    res.status(200).json({
-      totalGamesPlayed,
-      gamesWon,
-      gamesLost,
-      gamesDraw,
-      elo: player.elo || 1200,
-      eloHistory: player.eloHistory || [],
-    });
+    res.status(200).json(stats);
   } catch (error) {
     console.error("Error fetching player game stats:", error);
     res.status(500).json({ message: "Internal server error" });

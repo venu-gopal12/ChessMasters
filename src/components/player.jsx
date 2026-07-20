@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Player experience.
 import React, { useEffect, useRef, useState } from 'react';
 
 function Player() {

@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Index experience.
 import React, { useRef, useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link, useLocation } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
@@ -24,6 +25,57 @@ const chartOptions = {
     },
   },
 };
+
+const startingElo = 1200;
+const eloStep = 100;
+
+const asId = (value) => {
+  if (!value) return "";
+  return String(value._id || value);
+};
+
+const deriveStatsFromGames = (games, userId) => {
+  const playerId = asId(userId);
+  let gamesWon = 0;
+  let gamesLost = 0;
+  let gamesDraw = 0;
+  let elo = startingElo;
+  const eloHistory = [];
+
+  [...games]
+    .sort((left, right) => new Date(left.datePlayed || 0) - new Date(right.datePlayed || 0))
+    .forEach((game) => {
+      const isWhite = asId(game.playerWhite) === playerId;
+      const isBlack = asId(game.playerBlack) === playerId;
+      if (!isWhite && !isBlack) return;
+
+      if (game.winner === "Draw") {
+        gamesDraw += 1;
+      } else {
+        const won = (isWhite && game.winner === "White") || (isBlack && game.winner === "Black");
+        if (won) {
+          gamesWon += 1;
+          elo += eloStep;
+        } else {
+          gamesLost += 1;
+          elo -= eloStep;
+        }
+      }
+
+      eloHistory.push({ gameNumber: eloHistory.length + 1, elo });
+    });
+
+  return {
+    totalGamesPlayed: gamesWon + gamesLost + gamesDraw,
+    gamesWon,
+    gamesLost,
+    gamesDraw,
+    elo,
+    eloHistory,
+  };
+};
+
+const canLoadGameStats = (role) => ["player", "coach"].includes(role);
 
 function HomePage() {
   const navigate = useNavigate();
@@ -111,6 +163,11 @@ function HomePage() {
     axios
       .get(`${chessMastersBackend}/auth/details`, { withCredentials: true })
       .then((resp) => {
+        console.log("[Stats Debug] auth/details loaded", {
+          userId: resp.data?._id,
+          role: resp.data?.Role,
+          username: resp.data?.UserName,
+        });
         setDetails(resp.data);
         setIsPlayer(resp.data.Role === "player");
   
@@ -118,10 +175,21 @@ function HomePage() {
           axios
             .get(`${chessMastersBackend}/game/mygames`, { withCredentials: true })
             .then((resp) => {
-              setGames(Array.isArray(resp.data.games) ? resp.data.games : []);
+              const nextGames = Array.isArray(resp.data.games) ? resp.data.games : [];
+              console.log("[Stats Debug] mygames loaded", {
+                count: nextGames.length,
+                games: nextGames.map((game) => ({
+                  id: game._id,
+                  white: asId(game.playerWhite),
+                  black: asId(game.playerBlack),
+                  winner: game.winner,
+                  datePlayed: game.datePlayed,
+                })),
+              });
+              setGames(nextGames);
             })
             .catch((err) => {
-              console.error("Error fetching user games:", err);
+              console.error("[Stats Debug] Error fetching user games:", err);
               setGames([]);
             });
           }
@@ -181,19 +249,65 @@ function HomePage() {
   
   const fetchStats = async () => {
     try {
+      console.log("[Stats Debug] fetching stats", {
+        userId: details?._id,
+        role: details?.Role,
+        gamesLoaded: games.length,
+      });
       const response = await axios.get(`${chessMastersBackend}/player/${details._id}/game-stats`, { withCredentials: true });
-      console.log('stats data', response.data);
-      setStats(response.data);
+      const fallbackStats = deriveStatsFromGames(games, details._id);
+      const apiTotalGames = Number(response.data?.totalGamesPlayed || 0);
+      const nextStats = apiTotalGames > 0 || fallbackStats.totalGamesPlayed === 0 ? response.data : fallbackStats;
+
+      console.log("[Stats Debug] stats response resolved", {
+        apiStats: response.data,
+        apiTotalGames,
+        fallbackStats,
+        selectedSource: nextStats === response.data ? "api" : "games-fallback",
+        selectedStats: nextStats,
+      });
+
+      setStats(nextStats);
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("[Stats Debug] Error fetching stats:", error);
+      if (games.length > 0) {
+        const fallbackStats = deriveStatsFromGames(games, details._id);
+        console.log("[Stats Debug] using fallback after stats error", fallbackStats);
+        setStats(fallbackStats);
+      }
     }
   };
 
   useEffect(() => {
-    if (details && isPlayer) {
+    if (details && canLoadGameStats(details.Role)) {
       fetchStats();
+    } else {
+      console.log("[Stats Debug] stats fetch skipped", {
+        hasDetails: Boolean(details),
+        role: details?.Role,
+      });
     }
-  }, [details, isPlayer]);
+  }, [details]);
+
+  useEffect(() => {
+    if (!details || !canLoadGameStats(details.Role) || games.length === 0) {
+      console.log("[Stats Debug] games fallback skipped", {
+        hasDetails: Boolean(details),
+        role: details?.Role,
+        gamesLoaded: games.length,
+      });
+      return;
+    }
+
+    const fallbackStats = deriveStatsFromGames(games, details._id);
+    setStats((currentStats) => (
+      Number(currentStats.totalGamesPlayed || 0) > 0 ? currentStats : fallbackStats
+    ));
+    console.log("[Stats Debug] games fallback evaluated", {
+      fallbackStats,
+      gamesLoaded: games.length,
+    });
+  }, [details, games]);
 
   const chartData = {
     labels: ['Wins', 'Losses', 'Draws'],
@@ -268,33 +382,58 @@ function HomePage() {
         <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-success">
           <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5 lg:gap-8 items-center">
             <div>
-              <p className="text-xs sm:text-sm uppercase tracking-wider text-brand-muted font-semibold mb-2">Player Dashboard</p>
+              <p className="text-xs sm:text-sm uppercase tracking-wider text-brand-muted font-semibold mb-2">
+                {isPlayer ? "Player Dashboard" : "Coach Dashboard"}
+              </p>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-ink mb-3">
                 Welcome back, {details.UserName}!
               </h1>
               <p className="text-sm sm:text-base text-brand-muted mb-5">
-                Start a match, review your progress, and continue your coach-led chess learning.
+                {isPlayer
+                  ? "Start a match, review your progress, and continue your coach-led chess learning."
+                  : "Manage your coaching space, review recent games, and keep your profile ready for students."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => navigate('/ChessBoard')}
-                  className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-success text-white font-bold rounded-lg transition-all duration-300 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-brand-success focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
-                >
-                  <Play size={18} />
-                  Play Now
-                </button>
-                <motion.button
-                  onClick={() => navigate('/rules')}
-                  className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-action text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Book size={18} />
-                  Game Rules
-                </motion.button>
+                {isPlayer ? (
+                  <>
+                    <button
+                      onClick={() => navigate('/ChessBoard')}
+                      className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-success text-white font-bold rounded-lg transition-all duration-300 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-brand-success focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                    >
+                      <Play size={18} />
+                      Play Now
+                    </button>
+                    <motion.button
+                      onClick={() => navigate('/rules')}
+                      className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-action text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Book size={18} />
+                      Game Rules
+                    </motion.button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => navigate(`/coach/${details._id}/CoachDashboard`)}
+                      className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-success text-white font-bold rounded-lg transition-all duration-300 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-brand-success focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                    >
+                      <Users size={18} />
+                      Manage Dashboard
+                    </button>
+                    <button
+                      onClick={() => navigate(`/coach/${details._id}/CoachProfile`)}
+                      className="inline-flex items-center justify-center gap-2 py-3 px-5 bg-brand-action text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:bg-brand-actionHover focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-50 transform hover:scale-[1.02] text-sm sm:text-base"
+                    >
+                      <GraduationCap size={18} />
+                      Coach Profile
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -315,28 +454,30 @@ function HomePage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <button onClick={() => navigate('/ChessBoard')} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
-            <Play className="text-brand-success mb-3" size={22} />
-            <p className="font-semibold text-brand-ink">Play Online</p>
-            <p className="text-xs text-brand-muted mt-1">Start a chess match</p>
-          </button>
-          <button onClick={() => navigate('/CoachesAvailable')} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
-            <Users className="text-brand-accent mb-3" size={22} />
-            <p className="font-semibold text-brand-ink">Find Coach</p>
-            <p className="text-xs text-brand-muted mt-1">Browse coaching profiles</p>
-          </button>
-          <button onClick={() => navigate(`/player/${details._id}/profile`)} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
-            <Radio className="text-brand-accent mb-3" size={22} />
-            <p className="font-semibold text-brand-ink">Live Coaching</p>
-            <p className="text-xs text-brand-muted mt-1">Start with a subscribed coach</p>
-          </button>
-          <button onClick={() => setLearningTab(videos.length > 0 ? "videos" : "articles")} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
-            <GraduationCap className="text-brand-success mb-3" size={22} />
-            <p className="font-semibold text-brand-ink">View Lessons</p>
-            <p className="text-xs text-brand-muted mt-1">Videos and articles</p>
-          </button>
-        </section>
+        {isPlayer && (
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <button onClick={() => navigate('/ChessBoard')} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+              <Play className="text-brand-success mb-3" size={22} />
+              <p className="font-semibold text-brand-ink">Play Online</p>
+              <p className="text-xs text-brand-muted mt-1">Start a chess match</p>
+            </button>
+            <button onClick={() => navigate('/CoachesAvailable')} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+              <Users className="text-brand-accent mb-3" size={22} />
+              <p className="font-semibold text-brand-ink">Find Coach</p>
+              <p className="text-xs text-brand-muted mt-1">Browse coaching profiles</p>
+            </button>
+            <button onClick={() => navigate(`/player/${details._id}/profile`)} className="bg-brand-surface border border-brand-accent/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+              <Radio className="text-brand-accent mb-3" size={22} />
+              <p className="font-semibold text-brand-ink">Live Coaching</p>
+              <p className="text-xs text-brand-muted mt-1">Start with a subscribed coach</p>
+            </button>
+            <button onClick={() => setLearningTab(videos.length > 0 ? "videos" : "articles")} className="bg-brand-surface border border-brand-success/60 rounded-lg p-4 text-left hover:bg-brand-surfaceAlt transition-all duration-300">
+              <GraduationCap className="text-brand-success mb-3" size={22} />
+              <p className="font-semibold text-brand-ink">View Lessons</p>
+              <p className="text-xs text-brand-muted mt-1">Videos and articles</p>
+            </button>
+          </section>
+        )}
 
         <section className="bg-brand-surface rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md p-4 sm:p-6 lg:p-8 border-l-4 border-brand-success">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">

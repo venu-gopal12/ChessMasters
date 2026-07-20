@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for video API behavior.
 import Video from "../models/videoModel.js";
 import { canAccessCoachContentByCoachId } from "../utils/contentAccess.js";
 

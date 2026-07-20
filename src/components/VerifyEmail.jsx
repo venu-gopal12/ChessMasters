@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Verify Email experience.
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { chessMastersBackend } from "../../config.js";

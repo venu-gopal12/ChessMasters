@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Footer experience.
 import React from 'react';
 
 const Footer = () => {

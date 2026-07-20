@@ -1,3 +1,4 @@
+// Purpose: Regression tests for frontend session state behavior.
 import { beforeEach, describe, expect, test } from 'vitest';
 import userReducer, { clearUser, setUser } from './redux/userSlice';
 

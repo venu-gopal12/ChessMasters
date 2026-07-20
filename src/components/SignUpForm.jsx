@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Sign Up Form experience.
 import React, { useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { chessMastersBackend } from "../../config.js";

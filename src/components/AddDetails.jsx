@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Add Details experience.
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";

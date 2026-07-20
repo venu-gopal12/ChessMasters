@@ -1,3 +1,4 @@
+// Purpose: Manual backend smoke-test script for db behavior.
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 

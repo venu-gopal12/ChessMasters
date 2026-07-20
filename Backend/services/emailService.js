@@ -1,3 +1,4 @@
+// Purpose: Backend service helpers for email workflows.
 import axios from "axios";
 import nodemailer from "nodemailer";
 import { frontendUrl } from "../config.js";

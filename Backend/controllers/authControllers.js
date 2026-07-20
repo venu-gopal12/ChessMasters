@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for auth API behavior.
 import UserModel from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

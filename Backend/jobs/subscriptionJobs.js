@@ -1,3 +1,4 @@
+// Purpose: Scheduled backend job logic for subscription jobs maintenance.
 import { unsubscribeExpiredSubscriptions } from "../utils/subscriptionUtils.js";
 
 // Function to start the subscription cleanup job

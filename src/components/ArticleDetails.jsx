@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Article Details experience.
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';

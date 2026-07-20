@@ -1,3 +1,4 @@
+// Purpose: React UI component for the coach public profile experience.
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";

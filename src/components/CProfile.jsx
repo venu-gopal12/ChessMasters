@@ -1,3 +1,4 @@
+// Purpose: React UI component for the CProfile experience.
 import React, { useState, useEffect, useRef } from 'react';
 // import "../styles/profile.css";
 import {

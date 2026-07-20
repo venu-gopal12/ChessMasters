@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for video behavior.
 // tests/video.test.js
 import request from 'supertest';
 import express from 'express';

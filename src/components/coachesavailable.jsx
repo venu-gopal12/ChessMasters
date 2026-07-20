@@ -1,3 +1,4 @@
+// Purpose: React UI component for browsing available coaches.
 import React from "react";
 import Coachprofile from "./Coachprofile";
 import { useNavigate } from "react-router-dom";

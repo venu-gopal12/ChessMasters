@@ -1,3 +1,4 @@
+// Purpose: CLI helper for creating an administrator account.
 import readline from 'readline';
 import AdminModel from './models/adminModel.js';
 import mongoose from 'mongoose';

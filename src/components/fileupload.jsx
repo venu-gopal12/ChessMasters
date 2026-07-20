@@ -1,3 +1,4 @@
+// Purpose: React UI component for coach content uploads.
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from "react-redux";

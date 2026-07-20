@@ -1,3 +1,4 @@
+// Purpose: Redux state slice/store setup for error slice data.
 import { createSlice } from '@reduxjs/toolkit';
 
 const errorSlice = createSlice({

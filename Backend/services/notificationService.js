@@ -1,3 +1,4 @@
+// Purpose: Backend service helpers for notification workflows.
 import CoachDetails from "../models/CoachModel.js";
 import Notification from "../models/notificationModel.js";
 

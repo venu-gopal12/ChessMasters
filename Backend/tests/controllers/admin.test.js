@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for admin behavior.
 // tests/admin.test.js
 import request from 'supertest';
 import express from 'express';

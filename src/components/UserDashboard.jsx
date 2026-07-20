@@ -1,3 +1,4 @@
+// Purpose: React UI component for the User Dashboard experience.
 import React from 'react';
 
 const UserDashboard = () => {

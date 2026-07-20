@@ -1,3 +1,4 @@
+# Purpose: Container build instructions for the frontend deployment image.
 # Stage 1: Build the frontend application
 FROM node:22-alpine AS build
 

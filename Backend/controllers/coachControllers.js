@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for coach API behavior.
 // import CoachModel from "../models/CoachModel.js";
 import axios from "axios";
 import bcrypt from "bcrypt";
@@ -206,7 +207,7 @@ export const addArticle = [
       type: "new_article",
       title: "New coach article",
       message: title,
-      link: `/coach/ArticleDetail/${article._id}`,
+      link: `/ArticleDetail/${article._id}`,
       metadata: { article: article._id },
     });
 
@@ -258,7 +259,7 @@ export const addVideo = [
       type: "new_video",
       title: "New coach video",
       message: title,
-      link: `/coach/VideoDetail/${video._id}`,
+      link: `/VideoDetail/${video._id}`,
       metadata: { video: video._id },
     });
 

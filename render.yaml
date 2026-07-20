@@ -1,3 +1,4 @@
+# Purpose: Render deployment blueprint for backend hosting.
 version: 1
 services:
   - type: web

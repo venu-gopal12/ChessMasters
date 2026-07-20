@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Coach Dashboard experience.
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';

@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for auth behavior.
 // tests/auth.test.js
 import request from 'supertest';
 import express from 'express';

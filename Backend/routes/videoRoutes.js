@@ -1,3 +1,4 @@
+// Purpose: Express route definitions and validation for video endpoints.
 import express from "express";
 import { recordVideoView, getVideosByCoach } from "../controllers/videoControllers.js";
 import { authMiddleware } from "../middlewares/authMiddlerware.js"; // Correct middleware name and path

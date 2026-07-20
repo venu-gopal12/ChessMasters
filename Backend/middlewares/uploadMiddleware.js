@@ -1,3 +1,4 @@
+// Purpose: Cloudinary upload handling and file validation middleware.
 import multer from 'multer';
 import { config } from 'dotenv';
 import axios from 'axios';
@@ -39,6 +40,8 @@ const getExtension = (filename = '') => {
   return match ? match[0] : '';
 };
 
+// MIME type and extension are both checked because browsers can supply a MIME
+// header that does not match the actual filename users uploaded.
 const extensionMatchesMimeType = (filename = '', mimetype = '') => {
   const extension = getExtension(filename);
   if (mimetype === 'application/pdf') return extension === '.pdf';
@@ -50,6 +53,8 @@ const extensionMatchesMimeType = (filename = '', mimetype = '') => {
   return false;
 };
 
+// Custom Multer storage streams directly to Cloudinary, avoiding temporary
+// server files and preserving the Cloudinary public ID for later cleanup.
 const storage = {
   async _handleFile(req, file, cb) {
     const resourceType = getCloudinaryResourceType(file.mimetype);
@@ -172,6 +177,7 @@ export const deleteCloudinaryAsset = async (publicId, resourceType = 'image') =>
 
 export const getCloudinaryDownloadUrl = (publicId, resourceType = 'raw', attachment = true) => {
   if (!publicId) return "";
+  // Private download URLs expire quickly so article downloads are share-resistant.
   return cloudinary.utils.private_download_url(publicId, undefined, {
     resource_type: resourceType,
     type: 'upload',

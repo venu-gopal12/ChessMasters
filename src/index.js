@@ -1,3 +1,4 @@
+// Purpose: Legacy React entry point for mounting the app in older builds.
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

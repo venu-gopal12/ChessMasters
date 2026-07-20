@@ -1,3 +1,4 @@
+// Purpose: Express, Socket.IO, Swagger, MongoDB, and Redis server bootstrap.
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -41,6 +42,8 @@ import UserModel from "./models/userModel.js";
 const app = express();
 // const PORT = process.env.PORT || 3000;
 
+// Swagger is generated from route annotations, then served with paths adjusted
+// to match the public API shape used by deployments.
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -166,6 +169,8 @@ app.use("/social", socialRoutes);
 // });
 
 // Game stats update endpoint
+// Internal-only endpoint used by trusted backend flows to update a player's
+// aggregate stats without exposing this mutation to browsers directly.
 app.post("/updateGameStats", internalOnly, async (req, res, next) => {
   try {
     const { userId, result, eloChange } = req.body;
@@ -253,6 +258,8 @@ initializeGameSessions(io);
 
 // const MONGODB_URI = process.env.MONGODB_URI || "mongodb://0.0.0.0:27017/chessApp";
 
+// Boot order matters: connect persistence first, wire optional Redis state,
+// restore active games if available, then accept HTTP and Socket.IO traffic.
 const startServer = async () => {
   try {
     await mongoose.connect(mongodbUri);
@@ -273,6 +280,8 @@ const startServer = async () => {
   }
 };
 
+// Keep shutdown graceful so Redis sockets, MongoDB, and the HTTP server close
+// cleanly during deploys or local Ctrl+C exits.
 const shutdown = async () => {
   await closeRedis();
   await mongoose.disconnect();

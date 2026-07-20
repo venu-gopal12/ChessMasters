@@ -1,3 +1,4 @@
+// Purpose: Centralized backend environment configuration values.
 import { config } from "dotenv";
 
 // Load environment variables from .env file
@@ -23,7 +24,6 @@ export const jwtSecretKey = JWT_SECRET_KEY;
 export const port = PORT || 3000; // default fallback
 export const frontendUrl = FRONTEND_URL || "http://localhost:3000"; // default fallback
 export const mongodbUri = MONGODB_URI || "mongodb://localhost:27017/chessmasters"; // default fallback
-export const chessMastersBackend = VITE_BACKEND
-//  || "http://localhost:3000"; // default fallback
+export const chessMastersBackend = VITE_BACKEND || `http://localhost:${port}`; // default fallback
 export const redisUrl = REDIS_URL;
 export const internalApiKey = INTERNAL_API_KEY || "development-internal-api-key";

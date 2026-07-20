@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Profile experience.
 import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link, useNavigate, useParams } from 'react-router-dom';

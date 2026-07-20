@@ -1,3 +1,4 @@
+// Purpose: Redux state slice/store setup for payment slice data.
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {

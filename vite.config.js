@@ -1,3 +1,4 @@
+// Purpose: Vite development and build configuration for the frontend.
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 

@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Slide Show experience.
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 

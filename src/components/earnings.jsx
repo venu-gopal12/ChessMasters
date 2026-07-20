@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Earnings experience.
 
 
 

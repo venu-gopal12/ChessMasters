@@ -1,3 +1,4 @@
+// Purpose: Redux state slice/store setup for store data.
 import { configureStore } from '@reduxjs/toolkit';
 import paymentReducer from './paymentSlice';
 import userReducer from './userSlice';

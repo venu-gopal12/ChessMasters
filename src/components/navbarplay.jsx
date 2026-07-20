@@ -1,3 +1,4 @@
+// Purpose: React UI component for the play-area navigation bar.
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -83,6 +84,7 @@ const Navbar = () => {
                 Profile
               </NavButton>
             )}
+            <NavButton to="/notifications">Notifications</NavButton>
             <LogoutButton />
           </div>
         </div>

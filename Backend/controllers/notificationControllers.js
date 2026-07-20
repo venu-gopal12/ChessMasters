@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for notification API behavior.
 import Notification from "../models/notificationModel.js";
 
 export const getNotifications = async (req, res) => {

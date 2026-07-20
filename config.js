@@ -1,3 +1,4 @@
+// Purpose: Frontend runtime API endpoint configuration.
 export const chessMastersBackend = import.meta.env.VITE_BACKEND 
 || "http://localhost:3000";
 

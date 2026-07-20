@@ -1,3 +1,4 @@
+// Purpose: Mongoose schema and model definition for admin records.
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 

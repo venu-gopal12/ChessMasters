@@ -1,3 +1,4 @@
+// Purpose: ESLint rules for frontend and backend JavaScript quality checks.
 import js from '@eslint/js'
 import globals from 'globals'
 import react from 'eslint-plugin-react'

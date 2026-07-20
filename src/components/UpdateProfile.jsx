@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Update Profile experience.
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";

@@ -1,3 +1,4 @@
+// Purpose: JWT authentication middleware plus shared role guards.
 import jwt from "jsonwebtoken";
 import { jwtSecretKey } from "../config.js";
 import UserModel from "../models/userModel.js";

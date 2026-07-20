@@ -1,3 +1,4 @@
+// Purpose: Backend service helpers for token workflows.
 import crypto from "crypto";
 import AuthToken from "../models/authTokenModel.js";
 

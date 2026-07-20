@@ -1,3 +1,4 @@
+# Purpose: Local multi-container orchestration for the ChessMasters stack.
 version: '3.8'
 
 services:

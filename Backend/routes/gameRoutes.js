@@ -1,3 +1,4 @@
+// Purpose: Express route definitions and validation for game endpoints.
 import { Router } from "express";
 import {
   saveGameResult,

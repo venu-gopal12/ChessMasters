@@ -1,3 +1,4 @@
+// Purpose: Shared backend utility helpers for content access rules.
 import CoachDetails from "../models/CoachModel.js";
 import Block from "../models/blockModel.js";
 import UserModel from "../models/userModel.js";

@@ -1,3 +1,4 @@
+// Purpose: Backend service helpers for audit workflows.
 import AuditLog from "../models/auditLogModel.js";
 
 export const createAuditLog = async (req, { action, targetType, targetId, metadata = {} }) => {

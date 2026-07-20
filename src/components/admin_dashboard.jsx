@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Admin Dashboard experience.
 import React, { useEffect, useState } from 'react';
 import { BsPeopleFill,BsCurrencyDollar, BsFilePlus,BsFillBarChartLineFill, BsFillFileEarmarkTextFill, BsCashStack } from 'react-icons/bs';
 import AdminNav from './adminnav.jsx';

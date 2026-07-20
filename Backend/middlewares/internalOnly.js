@@ -1,3 +1,4 @@
+// Purpose: Protects server-to-server endpoints with an internal API key.
 import { internalApiKey } from "../config.js";
 
 export { internalApiKey };

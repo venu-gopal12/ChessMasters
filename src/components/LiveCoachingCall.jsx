@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Live Coaching Call experience.
 import React, { useEffect, useRef, useState } from "react";
 import { webRtcIceServers } from "../../config.js";
 

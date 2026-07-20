@@ -1,3 +1,4 @@
+// Purpose: Mongoose schema and model definition for auth token records.
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;

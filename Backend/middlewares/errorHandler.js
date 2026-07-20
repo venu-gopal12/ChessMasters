@@ -1,3 +1,4 @@
+// Purpose: Centralized Express error class, async wrapper, and error response middleware.
 // Custom error class for application-specific errors
 class ErrorHandler extends Error {
     constructor(message, statusCode) {

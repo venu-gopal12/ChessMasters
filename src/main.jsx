@@ -1,3 +1,4 @@
+// Purpose: React application entry point, route table, and global providers.
 import React, { Suspense, lazy } from "react";
 import axios from 'axios'; // Import axios
 import { createRoot } from "react-dom/client";

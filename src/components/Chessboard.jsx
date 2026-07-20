@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Chessboard experience.
 import React, { useState, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
@@ -8,6 +9,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { chessMastersBackend } from "../../config.js";
 import LiveCoachingCall from "./LiveCoachingCall";
 
+// Supports both absolute backend URLs and relative reverse-proxy paths.
 const socketEndpoint = () => {
   if (chessMastersBackend.startsWith("/")) {
     return {
@@ -86,11 +88,13 @@ function ChessBoard() {
   const socket = useRef(null);
   const containerRef = useRef(null);
   const fullscreenContainerRef = useRef(null);
+  // Tracks optimistic local moves until the server confirms or rejects them.
   const pendingMoveRef = useRef(null);
 
   const getMoveKey = (move) => `${move.from}-${move.to}-${move.promotion || ""}`;
 
-  // Resize board logic
+  // Resize board logic keeps the square board within both viewport dimensions
+  // and the adjacent move-history panel.
   useEffect(() => {
     const updateBoardWidth = () => {
       const isDesktopLayout = window.innerWidth >= 1024;
@@ -137,7 +141,7 @@ function ChessBoard() {
     };
   }, []);
 
-  // Safe game mutation function
+  // Safe game mutation function clones Chess.js state so React sees a new object.
   function safeGameMutate(modify) {
     setGame((g) => {
       const update = new Chess(g.fen());
@@ -580,6 +584,8 @@ function ChessBoard() {
       promotion: "q",
     };
 
+    // Optimistically preview the move, then roll back if the server rejects it
+    // or no acknowledgement arrives in time.
     const previousFen = game.fen();
     const preview = new Chess(game.fen());
     const result = preview.move(move);

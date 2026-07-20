@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Article Pdf Viewer experience.
 import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { chessMastersBackend } from '../../config.js';

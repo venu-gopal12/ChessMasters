@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for article API behavior.
 import Article from "../models/articleModel.js";
 import { canAccessCoachContentByCoachId } from "../utils/contentAccess.js";
 

@@ -1,3 +1,4 @@
+// Purpose: Shared backend utility helpers for subscription rules.
 import UserModel from "../models/userModel.js";
 import CoachDetails from "../models/CoachModel.js";
 

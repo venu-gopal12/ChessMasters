@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Request Password Reset experience.
 import React, { useState } from "react";
 import { chessMastersBackend } from "../../config.js";
 

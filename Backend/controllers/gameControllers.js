@@ -1,47 +1,8 @@
+// Purpose: Express controller handlers for game API behavior.
 import Game from "../models/gameModel.js"; 
 import mongoose from "mongoose";
 import ErrorHandler, { catchAsync } from "../middlewares/errorHandler.js";
-import UserModel from "../models/userModel.js";
-
-const updateUserGameStats = async (userId, result) => {
-  const user = await UserModel.findById(userId);
-  if (!user) return;
-
-  const eloChange = result === "win" ? 100 : result === "loss" ? -100 : 0;
-  const nextGameNumber = (user.eloHistory?.length || 0) + 1;
-  const update = {
-    $inc: {
-      gamesWon: result === "win" ? 1 : 0,
-      gamesLost: result === "loss" ? 1 : 0,
-      gamesDraw: result === "draw" ? 1 : 0,
-      elo: eloChange,
-    },
-    $push: {
-      eloHistory: {
-        gameNumber: nextGameNumber,
-        elo: (user.elo || 1200) + eloChange,
-      },
-    },
-  };
-
-  await UserModel.findByIdAndUpdate(userId, update);
-};
-
-const updateStatsForGame = async ({ playerWhite, playerBlack, winner }) => {
-  if (winner === "Draw") {
-    await Promise.all([
-      updateUserGameStats(playerWhite, "draw"),
-      updateUserGameStats(playerBlack, "draw"),
-    ]);
-    return;
-  }
-
-  const whiteWon = winner === "White";
-  await Promise.all([
-    updateUserGameStats(playerWhite, whiteWon ? "win" : "loss"),
-    updateUserGameStats(playerBlack, whiteWon ? "loss" : "win"),
-  ]);
-};
+import { recordGameResult } from "../services/gameResultService.js";
 
 export const saveGameResult = catchAsync(async (req, res, next) => {
   const { gameSessionId, playerWhite, playerBlack, moves, winner, additionalAttributes } = req.body;
@@ -61,27 +22,20 @@ export const saveGameResult = catchAsync(async (req, res, next) => {
     moves: moves ? `White: ${moves.whiteMoves?.length || 0}, Black: ${moves.blackMoves?.length || 0}` : "None"
   });
 
-  if (gameSessionId) {
-    const existingGame = await Game.findOne({ gameSessionId });
-    if (existingGame) {
-      return res.status(200).json({ message: "Game result already saved", game: existingGame });
-    }
-  }
-
-  const newGame = new Game({
+  const result = await recordGameResult({
     gameSessionId,
     playerWhite,
     playerBlack,
     moves,
     winner,
     additionalAttributes: gameAttributes,
-    datePlayed: new Date()
   });
 
-  await newGame.save();
-  await updateStatsForGame({ playerWhite, playerBlack, winner });
+  if (!result.created) {
+    return res.status(200).json({ message: "Game result already saved", game: result.game });
+  }
 
-  res.status(201).json({ message: "Game saved successfully", game: newGame });
+  res.status(201).json({ message: "Game saved successfully", game: result.game });
 });
 
 export const getGameDetails = catchAsync(async (req, res, next) => {

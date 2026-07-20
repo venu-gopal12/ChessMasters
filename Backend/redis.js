@@ -1,3 +1,4 @@
+// Purpose: Redis adapter, persisted game state, and distributed lock helpers.
 import { createClient } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
 import crypto from "crypto";
@@ -25,6 +26,8 @@ export const connectRedis = async (io) => {
     client.on("error", error => console.error("Redis client error:", error.message));
     subscriber.on("error", error => console.error("Redis subscriber error:", error.message));
 
+    // Fail fast on hosted environments where Redis may be optional or sleeping;
+    // the app can still run with single-instance in-memory coordination.
     await Promise.race([
       Promise.all([client.connect(), subscriber.connect()]),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Redis connection timed out")), 2500)),
@@ -57,6 +60,8 @@ export const withRedisLock = async (name, callback) => {
   const key = `chessmasters:lock:${name}`;
   const token = crypto.randomUUID();
 
+  // The token check prevents one worker from deleting another worker's lock if
+  // a slow callback outlives the lock TTL.
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const acquired = await client.set(key, token, { NX: true, PX: 5000 });
     if (acquired) {

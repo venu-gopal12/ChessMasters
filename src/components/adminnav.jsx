@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Adminnav experience.
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { chessMastersBackend } from '../../config.js';

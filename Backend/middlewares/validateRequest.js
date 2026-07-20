@@ -1,3 +1,4 @@
+// Purpose: Converts express-validator failures into API error responses.
 import { validationResult } from "express-validator";
 
 export const validateRequest = (req, res, next) => {

@@ -1,3 +1,4 @@
+// Purpose: Configurable request rate limiting middleware.
 const buckets = new Map();
 
 export const createRateLimiter = ({ windowMs = 60_000, max = 60, keyPrefix = "global" } = {}) => (

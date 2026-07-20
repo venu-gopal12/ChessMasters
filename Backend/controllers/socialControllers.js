@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for social API behavior.
 import Block from "../models/blockModel.js";
 import Report from "../models/reportModel.js";
 import UserModel from "../models/userModel.js";

@@ -1,3 +1,4 @@
+// Purpose: Mongoose schema and model definition for user records.
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 

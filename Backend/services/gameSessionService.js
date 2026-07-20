@@ -1,20 +1,18 @@
-import axios from "axios";
+// Purpose: Backend service helpers for game session workflows.
 import { Chess } from "chess.js";
 import jwt from "jsonwebtoken";
-import { chessMastersBackend, jwtSecretKey } from "../config.js";
-import { internalApiKey } from "../middlewares/internalOnly.js";
+import { jwtSecretKey } from "../config.js";
 import Block from "../models/blockModel.js";
 import CoachDetails from "../models/CoachModel.js";
 import UserModel from "../models/userModel.js";
 import { loadActiveGames, saveActiveGames, withRedisLock } from "../redis.js";
+import { recordGameResult } from "./gameResultService.js";
 
+// In-memory room state is the fast path; Redis persistence/locks make it safe
+// to recover active rooms and coordinate writes when Redis is configured.
 let games = {};
 let redisEnabled = false;
 const disconnectTimers = new Map();
-
-const internalApi = axios.create({
-  headers: { "x-internal-api-key": internalApiKey },
-});
 
 const sameId = (left, right) => left?.toString() === right?.toString();
 
@@ -41,6 +39,8 @@ const publicPlayers = (players = []) => players.map((player) => ({
   participantRole: player.participantRole,
 }));
 
+// Chess.js instances cannot be JSON-stringified directly, so rooms are reduced
+// to PGN plus metadata before being written to Redis.
 const serializeGames = () => Object.fromEntries(
   Object.entries(games).map(([roomId, room]) => [
     roomId,
@@ -70,6 +70,7 @@ export const restoreGameSessions = async () => {
   const savedGames = await loadActiveGames();
   if (!savedGames) return;
 
+  // Rehydrate each saved PGN into a live Chess instance before sockets resume.
   games = Object.fromEntries(
     Object.entries(savedGames).map(([roomId, room]) => {
       const game = new Chess();
@@ -88,6 +89,8 @@ export const restoreGameSessions = async () => {
   );
 };
 
+// Socket authentication mirrors cookie-based HTTP auth so refreshes and normal
+// browser navigation keep multiplayer sessions attached to the same user.
 const authenticateSocket = (socket) => {
   const cookieHeader = socket.handshake.headers.cookie || "";
   const authCookie = cookieHeader
@@ -105,6 +108,8 @@ const authenticateSocket = (socket) => {
   return userId;
 };
 
+// Coaching boards are limited to the coach and one subscribed student, with
+// block checks applied before either participant can enter the room.
 const userCanJoinCoachingGame = async ({ userId, coachId, studentId }) => {
   const [user, coachProfile] = await Promise.all([
     UserModel.findById(userId),
@@ -121,12 +126,14 @@ const userCanJoinCoachingGame = async ({ userId, coachId, studentId }) => {
   return { user, color: isStudent ? "w" : "b", participantRole: isStudent ? "student" : "coach" };
 };
 
+// Results are saved through shared persistence code so stats stay in sync
+// without the socket layer making a fragile HTTP request back to this server.
 const saveGameResult = async (roomId, gameRoom, winner, reason) => {
   const whitePlayer = gameRoom.players.find((player) => player.color === "w");
   const blackPlayer = gameRoom.players.find((player) => player.color === "b");
   if (!whitePlayer || !blackPlayer) return;
 
-  await internalApi.post(`${chessMastersBackend}/game/saveGameResult`, {
+  await recordGameResult({
     gameSessionId: roomId,
     playerWhite: whitePlayer.userId,
     playerBlack: blackPlayer.userId,
@@ -139,6 +146,8 @@ const saveGameResult = async (roomId, gameRoom, winner, reason) => {
   });
 };
 
+// End-of-game processing is idempotent per room and notifies clients even while
+// database persistence completes asynchronously.
 const finishGameRoom = async (io, roomId, winner, reason, eventName = "gameOver") => {
   const gameRoom = games[roomId];
   if (!gameRoom || gameRoom.isGameOver) return;
@@ -159,6 +168,8 @@ const findPlayerInRoom = (gameRoom, socket, authenticatedUserId) => gameRoom.pla
   (player) => player.socketId === socket.id && sameId(player.userId, authenticatedUserId)
 );
 
+// Every move is checked under a room lock so turn order and Chess.js state stay
+// authoritative on the server, even if clients submit at nearly the same time.
 const handleMove = async (io, socket, authenticatedUserId, { move, room }, ack) => {
   await withRedisLock(`game:${room}`, async () => {
     if (redisEnabled) await restoreGameSessions();
@@ -198,6 +209,8 @@ const handleMove = async (io, socket, authenticatedUserId, { move, room }, ack) 
   });
 };
 
+// Matchmaking reuses an open one-player room when possible; otherwise it starts
+// a new room and waits for another eligible player.
 const joinGame = async (io, socket, authenticatedUserId) => {
   const user = await UserModel.findById(authenticatedUserId);
   if (!user || user.Role === "admin" || user.Status !== "Active") {
@@ -267,6 +280,8 @@ const joinGame = async (io, socket, authenticatedUserId) => {
   }
 };
 
+// Coaching sessions use deterministic room IDs so both participants land on the
+// same shared board from dashboard links.
 const joinCoachingGame = async (io, socket, authenticatedUserId, { coachId, studentId }) => {
   if (redisEnabled) await restoreGameSessions();
   const access = await userCanJoinCoachingGame({ userId: authenticatedUserId, coachId, studentId });
@@ -319,6 +334,8 @@ const joinCoachingGame = async (io, socket, authenticatedUserId, { coachId, stud
   }
 };
 
+// Disconnects get a short grace period for refreshes/reconnects before the
+// remaining player is awarded the result.
 const handleDisconnect = (io, socket, authenticatedUserId) => {
   for (const roomId in games) {
     const gameRoom = games[roomId];
@@ -489,6 +506,7 @@ export const initializeGameSessions = (io) => {
       await finishGameRoom(io, room, winner, reason || (winner === "Draw" ? "Draw" : "Checkmate"));
     });
 
+    // WebRTC signaling is relayed only inside the joined coaching room.
     ["coachCallReady", "coachCallOffer", "coachCallAnswer", "coachIceCandidate", "coachCallStatus", "coachCallEnded"]
       .forEach((eventName) => {
         socket.on(eventName, ({ room, ...payload }) => {

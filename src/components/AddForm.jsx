@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Add Form experience.
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { chessMastersBackend } from "../../config";

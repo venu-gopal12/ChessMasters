@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for article behavior.
 // tests/article.test.js
 import request from 'supertest';
 import express from 'express';

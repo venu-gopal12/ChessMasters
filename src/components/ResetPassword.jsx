@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Reset Password experience.
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { chessMastersBackend } from "../../config.js";

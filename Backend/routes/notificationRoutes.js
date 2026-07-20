@@ -1,3 +1,4 @@
+// Purpose: Express route definitions and validation for notification endpoints.
 import express from "express";
 import { param } from "express-validator";
 import { authMiddleware } from "../middlewares/authMiddlerware.js";

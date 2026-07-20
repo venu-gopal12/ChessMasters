@@ -1,3 +1,4 @@
+// Purpose: Mongoose schema and model definition for admin revenue records.
 import mongoose from 'mongoose';
 
 const AdminRevenueSchema = new mongoose.Schema({

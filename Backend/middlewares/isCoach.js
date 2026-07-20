@@ -1,3 +1,4 @@
+// Purpose: Restricts routes to authenticated coach users.
 import jwt from "jsonwebtoken";
 import UserModel  from "../models/userModel.js"; 
 import { jwtSecretKey } from "../config.js";

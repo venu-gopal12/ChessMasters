@@ -1,3 +1,4 @@
+# Purpose: Container build instructions for the backend API image.
 # Use Node.js LTS version
 FROM node:22-alpine
 

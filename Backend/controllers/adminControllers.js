@@ -1,3 +1,4 @@
+// Purpose: Express controller handlers for admin API behavior.
 //admin controllers
 
 import UserModel from '../models/userModel.js';

@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for player behavior.
 // tests/player.test.js
 import request from 'supertest';
 import express from 'express';

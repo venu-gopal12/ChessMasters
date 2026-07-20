@@ -1,3 +1,4 @@
+// Purpose: React UI component for the View Game experience.
 import React, { useState, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";

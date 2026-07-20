@@ -1,3 +1,4 @@
+// Purpose: Jest configuration for backend test execution.
 export default {
     transform: {},
     extensionsToTreatAsEsm: ['.jsx', '.ts', '.tsx'], // Remove '.js' from this array

@@ -1,3 +1,4 @@
+// Purpose: Restricts routes to authenticated admin users.
 import { authMiddleware } from './authMiddlerware.js';
 
 export const isAdmin = (req, res, next) => {

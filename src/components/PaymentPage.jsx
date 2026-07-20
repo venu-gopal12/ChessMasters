@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Payment Page experience.
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";

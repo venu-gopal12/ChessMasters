@@ -1,3 +1,4 @@
+// Purpose: Express route definitions and validation for auth endpoints.
 import { Router } from "express";
 import { body, oneOf } from "express-validator";
 import {

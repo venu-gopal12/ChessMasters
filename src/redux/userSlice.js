@@ -1,3 +1,4 @@
+// Purpose: Redux state slice/store setup for user slice data.
 import { createSlice } from '@reduxjs/toolkit';
 
 const userSlice = createSlice({

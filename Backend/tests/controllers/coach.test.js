@@ -1,3 +1,4 @@
+// Purpose: Backend endpoint smoke tests for coach behavior.
 // tests/coach.test.js
 import request from 'supertest';
 import express from 'express';

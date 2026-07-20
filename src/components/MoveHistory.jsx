@@ -1,3 +1,4 @@
+// Purpose: React UI component for the Move History experience.
 import React, { useEffect, useRef } from 'react';
 
 function MoveHistory({ history, onResign, onDrawRequest, gameOver }) {

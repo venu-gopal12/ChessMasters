@@ -1,3 +1,4 @@
+// Purpose: Express route definitions and validation for article endpoints.
 import express from "express";
 import { recordArticleView, getArticlesByCoach } from "../controllers/articleControllers.js";
 import { authMiddleware } from "../middlewares/authMiddlerware.js"; // Correct middleware name and path

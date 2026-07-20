@@ -1,3 +1,4 @@
+// Purpose: Mongoose schema and model definition for block records.
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
